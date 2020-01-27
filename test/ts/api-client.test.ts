@@ -27,6 +27,18 @@ describe('testing APIClient', function() {
       const spy = chai.spy.on(client, 'call');
       return client.call(opts).should.eventually.be.rejected;
     });
+    it('with missing options should throw', async function() {
+      const client = new APIClient('https://localhost:8443');
+      const opts: any = {};
+      const spy = chai.spy.on(client, 'call');
+      return client.call(opts).should.eventually.be.rejected;
+    });
+    it('with undefined options should throw', async function() {
+      const client = new APIClient('https://localhost:8443');
+      const opts: any = undefined;
+      const spy = chai.spy.on(client, 'call');
+      return client.call(opts).should.eventually.be.rejected;
+    });
     it('for 401 should retry', async function() {
       const client = new APIClient('https://localhost:8443');
       const opts: APICallOptions = {
