@@ -68,6 +68,25 @@ describe('testing APIClient', function() {
       server = await startHTTPServer(8443);
       return;
     });
+
+    it('should use headers option, if set', async function() {
+      const client = new APIClient('https://localhost:8443');
+      const opts: APICallOptions = {
+        method: 'get',
+        path: '/api/get-test',
+        headers: { 'x-test': 'testme', a: '123' },
+        retries: 3,
+        retryAfter: 2000
+      };
+      const spy = chai.spy.on(client, 'call');
+      const result = await client.call(opts);
+      result.should.have.property('result');
+      result.headers['x-test'].should.equal('testme');
+      result.headers['a'].should.equal('123');
+      spy.should.have.been.called.once;
+      return;
+    });
+
     it('for 200 OK should not retry', async function() {
       const client = new APIClient('https://localhost:8443');
       const opts: APICallOptions = {
@@ -130,7 +149,7 @@ describe('testing APIClient', function() {
       const opts: APICallOptions = {
         method: 'get',
         path: '/api/usr-pass-auth',
-        httpOptions: { user, password },
+        authOptions: { user, password },
         retries: 3,
         retryAfter: 2000
       };
@@ -148,7 +167,7 @@ describe('testing APIClient', function() {
       const opts: APICallOptions = {
         method: 'get',
         path: '/api/bearer-auth',
-        httpOptions: { authorizationType, token },
+        authOptions: { authorizationType, token },
         retries: 3,
         retryAfter: 2000
       };
@@ -169,7 +188,7 @@ describe('testing APIClient', function() {
         method: 'post',
         path: '/api/bearer-auth',
         body,
-        httpOptions: { authorizationType, token },
+        authOptions: { authorizationType, token },
         retries: 3,
         retryAfter: 2000
       };

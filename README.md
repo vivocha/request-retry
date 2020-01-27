@@ -35,7 +35,8 @@ const result = await client.call(opts);
   path: string;
   qs?: any;
   body?: any;
-  httpOptions?: HTTPOptions;
+  headers?: any
+  authOptions?: HTTPAuthOptions;
   retries: number;
   retryAfter: number;
   doNotRetryOnErrors?: number[];
@@ -48,12 +49,13 @@ const result = await client.call(opts);
 | **`path`**           | string                                                                         | relative (to `baseUrl`, constructor param) path of the endpoint to call                 |
 | `qs`                 | (optional) object                                                              | query string params                                                                     |
 | `body`               | (optional) object                                                              | JSON body to send to the endpoint                                                       |
-| `httpOptions`        | (optional) object                                                              | See HTTPOptions below                                                                   |
+| `headers`            | (optional) object                                                              | HTTP headers to send                                                                    |
+| `authOptions`        | (optional) object                                                              | See HTTPAuthOptions below                                                               |
 | **`retries`**        | number                                                                         | Max number of retries in case of error calling the endpoint                             |
 | **`retryAfter`**     | number                                                                         | Number of milliseconds to wait before each retry                                        |
 | `doNotRetryOnErrors` | (optional) array of HTTP error code numbers (e.g., `401`, `404`, ...)          | The client WILL NOT retry the call in case of an HTTP error code included in this array |
 
-where `HTTPOptions` is an object as follows:
+where `HTTPAuthOptions` is an object as follows:
 
 ```javascript
 {

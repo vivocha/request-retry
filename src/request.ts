@@ -1,7 +1,7 @@
 import { getLogger } from 'debuggo';
 import * as rp from 'request-promise-native';
 
-export interface HTTPOptions {
+export interface HTTPAuthOptions {
   authorizationType?: string;
   token?: string;
   user?: string;
@@ -12,7 +12,8 @@ export interface APICallOptions {
   path: string;
   qs?: any;
   body?: any;
-  httpOptions?: HTTPOptions;
+  headers?: any;
+  authOptions?: HTTPAuthOptions;
   retries: number;
   retryAfter: number;
   doNotRetryOnErrors?: number[];
@@ -27,18 +28,19 @@ export class APIClient {
         method: options.method,
         qs: options.qs,
         body: options.body,
+        headers: options.headers ? options.headers : {},
         json: true,
         simple: false,
         resolveWithFullResponse: true
       };
-      if (options?.httpOptions?.token && options?.httpOptions?.authorizationType) {
+      if (options?.authOptions?.token && options?.authOptions?.authorizationType) {
         requestOpts.headers = {
-          authorization: `${options.httpOptions.authorizationType} ${options.httpOptions.token}`
+          authorization: `${options.authOptions.authorizationType} ${options.authOptions.token}`
         };
-      } else if (options?.httpOptions?.user && options?.httpOptions?.password) {
+      } else if (options?.authOptions?.user && options?.authOptions?.password) {
         requestOpts.auth = {
-          user: options.httpOptions.user,
-          pass: options.httpOptions.password
+          user: options.authOptions.user,
+          pass: options.authOptions.password
         };
       }
       options.doNotRetryOnErrors = options.doNotRetryOnErrors && options.doNotRetryOnErrors.length ? options.doNotRetryOnErrors : [];

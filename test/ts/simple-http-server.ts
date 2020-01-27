@@ -11,7 +11,7 @@ export async function startHTTPServer(port: number = 443): Promise<any> {
 
   const upload = multer({ dest: 'uploads/' });
   app.get('/api/get-test', (req, res) => {
-    res.send({ result: 'ok' });
+    res.send({ result: 'ok', headers: req.headers });
   });
   app.get('/api/auth-required', (req, res) => {
     res.status(401).end();
