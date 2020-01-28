@@ -14,7 +14,7 @@ describe('testing APIClient', function() {
     process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
     let server;
     before('starting test HTTP server', async function() {
-      console.log('Starting test server');
+      // console.log('Starting test server');
       server = await startHTTPServer(8443);
       return;
     });
@@ -39,7 +39,7 @@ describe('testing APIClient', function() {
       const spy = chai.spy.on(client, 'call');
       return client.call(opts).should.eventually.be.rejected;
     });
-    it('for 401 should retry', async function() {
+    it('for 401 should retry 3 times (4 calls)', async function() {
       const client = new APIClient('https://localhost:8443');
       const opts: APICallOptions = {
         method: 'get',
@@ -51,7 +51,7 @@ describe('testing APIClient', function() {
       await client.call(opts).should.eventually.be.rejected;
       return spy.should.have.been.called.exactly(4);
     });
-    it('for a 401 in doNotTryOnErrors list, it should not retry', async function() {
+    it('for a 401 in doNotTryOnErrors list, it should not retry (1 call)', async function() {
       const client = new APIClient('https://localhost:8443');
       const opts: APICallOptions = {
         method: 'get',
@@ -65,7 +65,7 @@ describe('testing APIClient', function() {
       return spy.should.have.been.called.exactly(1);
     });
     after('stopping HTTP server', async function() {
-      console.log('Stopping test server');
+      // console.log('Stopping test server');
       server.close();
       process.env = env;
       return;
@@ -76,12 +76,12 @@ describe('testing APIClient', function() {
     process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
     let server;
     before('starting test HTTP server', async function() {
-      console.log('Starting test server');
+      // console.log('Starting test server');
       server = await startHTTPServer(8443);
       return;
     });
 
-    it('should use headers option, if set', async function() {
+    it('should use headers option, if set (1 call)', async function() {
       const client = new APIClient('https://localhost:8443');
       const opts: APICallOptions = {
         method: 'get',
@@ -99,7 +99,7 @@ describe('testing APIClient', function() {
       return;
     });
 
-    it('for 200 OK should not retry', async function() {
+    it('for 200 OK should not retry (1 call)', async function() {
       const client = new APIClient('https://localhost:8443');
       const opts: APICallOptions = {
         method: 'get',
@@ -113,7 +113,7 @@ describe('testing APIClient', function() {
       spy.should.have.been.called.once;
       return;
     });
-    it('for 401 should retry', async function() {
+    it('for 401 should retry for 3 times (4 calls)', async function() {
       const client = new APIClient('https://localhost:8443');
       const opts: APICallOptions = {
         method: 'get',
@@ -125,7 +125,7 @@ describe('testing APIClient', function() {
       await client.call(opts).should.eventually.be.rejected;
       return spy.should.have.been.called.exactly(4);
     });
-    it('for a 401 in doNotTryOnErrors list, it should not retry', async function() {
+    it('for a 401 in doNotTryOnErrors list, it should not retry (1 call)', async function() {
       const client = new APIClient('https://localhost:8443');
       const opts: APICallOptions = {
         method: 'get',
@@ -139,18 +139,18 @@ describe('testing APIClient', function() {
       return spy.should.have.been.called.exactly(1);
     });
     after('stopping HTTP server', async function() {
-      console.log('Stopping test server');
+      // console.log('Stopping test server');
       server.close();
       process.env = env;
       return;
     });
   });
-  describe('#call() with user passwd authentication', function() {
+  describe('#call() with authentication', function() {
     let env = process.env;
     process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
     let server;
     before('starting test HTTP server', async function() {
-      console.log('Starting test server');
+      // console.log('Starting test server');
       server = await startHTTPServer(8443);
       return;
     });
@@ -214,7 +214,7 @@ describe('testing APIClient', function() {
       return;
     });
     after('stopping HTTP server', async function() {
-      console.log('Stopping test server');
+      // console.log('Stopping test server');
       server.close();
       process.env = env;
       return;
