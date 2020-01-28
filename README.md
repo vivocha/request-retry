@@ -12,7 +12,7 @@ General HTTP client with configurable retry option.
 
 #### `call(options: APICallOptions)`
 
-Quick Example:
+Quick Examples (TypeScript):
 
 **1) Do a `GET` call to `https://my-super-server.test-api.com:8443/api/things` with a maximum of 3 retries in case of any error, waiting for 2000ms before each retry**
 
@@ -23,6 +23,28 @@ const opts: APICallOptions = {
     path: '/api/things',
     retries: 3,
     retryAfter: 2000
+};
+const result = await client.call(opts);
+```
+
+**1) Do an authenticated `POST` call to `https://my-super-server.test-api.com:8443/api/things`, with a maximum of 5 retries in case of any error excluding a 401, waiting for 1000ms before each retry**
+
+```javascript
+const client = new APIClient('https://my-super-server.test-api.com:8443');
+const opts: APICallOptions = {
+    method: 'post',
+    path: '/api/things',
+    authOptions: {
+      authorizationType = 'Bearer',
+      token: 'abcd-1234'
+    },
+    body: {
+      type: 'lamp'
+      model: 'X-100'
+    },
+    retries: 5,
+    retryAfter: 1000,
+    doNotRetryOnErrors: [401]
 };
 const result = await client.call(opts);
 ```
