@@ -2,6 +2,8 @@
 
 _HTTP requests with retry and API utilities._
 
+[![NPM version](https://img.shields.io/npm/v/@vivocha/request-retry.svg?style=flat)](https://www.npmjs.com/package/@vivocha/request-retry)  [![Build Status](https://travis-ci.com/vivocha/request-retry.svg?branch=master)](https://travis-ci.org/vivocha/request-retry)  [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)|
+
 **Vivocha Request-Retry** exports all from `request` module as `classicRequest`, exports all from `request-promise-native` as `requestPromise`, and adds the following classes/utils:
 
 ## `APIClient`
