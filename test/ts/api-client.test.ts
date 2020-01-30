@@ -9,7 +9,7 @@ chai.use(chaiPromis);
 chai.should();
 
 describe('testing APIClient', function() {
-  describe('#call()', function() {
+  describe('#call() with wrong options', function() {
     let env = process.env;
     process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
     let server;
@@ -213,6 +213,83 @@ describe('testing APIClient', function() {
       spy.should.have.been.called.once;
       return;
     });
+    after('stopping HTTP server', async function() {
+      // console.log('Stopping test server');
+      server.close();
+      process.env = env;
+      return;
+    });
+  });
+  describe('#call() for non-JSON response bodies', function() {
+    let env = process.env;
+    process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
+    let server;
+    before('starting test HTTP server', async function() {
+      // console.log('Starting test server');
+      server = await startHTTPServer(8443);
+      return;
+    });
+    it('for HTML content, body should be a string', async function() {
+      const client = new APIClient('https://localhost:8443');
+      const opts: APICallOptions = {
+        method: 'get',
+        path: '/api/html',
+        retries: 3,
+        retryAfter: 2000
+      };
+      const spy = chai.spy.on(client, 'call');
+      const result = await client.call(opts);
+      result.should.be.equal(`<html><head><script></script></head><body></body></html>`);
+      spy.should.have.been.called.once;
+    });
+
+    after('stopping HTTP server', async function() {
+      // console.log('Stopping test server');
+      server.close();
+      process.env = env;
+      return;
+    });
+  });
+  describe('#call() with full response', function() {
+    let env = process.env;
+    process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
+    let server;
+    before('starting test HTTP server', async function() {
+      // console.log('Starting test server');
+      server = await startHTTPServer(8443);
+      return;
+    });
+    it('with options.getFullresponse = true should return a full HTTP response', async function() {
+      const client = new APIClient('https://localhost:8443');
+      const opts: APICallOptions = {
+        method: 'get',
+        path: '/api/get-test',
+        retries: 3,
+        retryAfter: 2000,
+        getFullResponse: true
+      };
+      const spy = chai.spy.on(client, 'call');
+      const result = await client.call(opts);
+      //console.dir(result, { colors: true, depth: 20 });
+      result.should.have.property('body');
+      result.should.have.property('readable');
+      result.should.have.property('socket');
+      spy.should.have.been.called.once;
+    });
+    it('without options.getFullresponse should return a body only HTTP response', async function() {
+      const client = new APIClient('https://localhost:8443');
+      const opts: APICallOptions = {
+        method: 'get',
+        path: '/api/get-test',
+        retries: 3,
+        retryAfter: 2000
+      };
+      const spy = chai.spy.on(client, 'call');
+      const result = await client.call(opts);
+      result.result.should.equal('ok');
+      spy.should.have.been.called.once;
+    });
+
     after('stopping HTTP server', async function() {
       // console.log('Stopping test server');
       server.close();

@@ -26,6 +26,10 @@ export async function startHTTPServer(port: number = 443): Promise<any> {
       headers: req.headers
     });
   });
+  app.get('/api/html', (req, res) => {
+    res.setHeader('content-type', 'text/html');
+    res.status(200).send(`<html><head><script></script></head><body></body></html>`);
+  });
   app.post('/api/bearer-auth', (req, res) => {
     res.status(200).send({
       headers: req.headers,

@@ -17,6 +17,7 @@ export interface APICallOptions {
   retries: number;
   retryAfter: number;
   doNotRetryOnErrors?: number[];
+  getFullResponse?: boolean;
 }
 export class APIClient {
   constructor(private baseUrl: string, protected logger = getLogger('vivocha.api-client')) {}
@@ -25,14 +26,18 @@ export class APIClient {
       throw new Error('options.method and options.path are required');
     } else {
       const requestOpts: rp.RequestPromiseOptions = {
-        method: options.method,
-        qs: options.qs,
-        body: options.body,
+        method: options.method || 'get',
         headers: options.headers ? options.headers : {},
-        json: true,
         simple: false,
+        json: true,
         resolveWithFullResponse: true
       };
+      if (options.qs) {
+        requestOpts.qs = options.qs;
+      }
+      if (options.body) {
+        requestOpts.body = options.body;
+      }
       if (options?.authOptions?.token && options?.authOptions?.authorizationType) {
         requestOpts.headers = {
           authorization: `${options.authOptions.authorizationType} ${options.authOptions.token}`
@@ -49,7 +54,7 @@ export class APIClient {
       const response: rp.FullResponse = await rp(apiEndpoint, requestOpts);
       this.logger.debug('Response status', response.statusCode);
       if (response.statusCode >= 200 && response.statusCode <= 299) {
-        return response.body;
+        return options.getFullResponse ? response : response.body;
       } else {
         this.logger.error(`Call returned response error ${response.statusCode}, body: ${JSON.stringify(response.body)}`);
         if (options.retries === 0 || options?.doNotRetryOnErrors.includes(response.statusCode)) {

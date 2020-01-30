@@ -29,7 +29,7 @@ const opts: APICallOptions = {
 const result = await client.call(opts);
 ```
 
-**1) Do an authenticated `POST` call to `https://my-super-server.test-api.com:8443/api/things`, with a maximum of 5 retries in case of any error excluding a 401, waiting for 1000ms before each retry**
+**2) Do an authenticated `POST` call to `https://my-super-server.test-api.com:8443/api/things`, with a maximum of 5 retries in case of any error excluding a 401, waiting for 1000ms before each retry**
 
 ```javascript
 const client = new APIClient('https://my-super-server.test-api.com:8443');
@@ -51,6 +51,19 @@ const opts: APICallOptions = {
 const result = await client.call(opts);
 ```
 
+**3) Do a `GET` call to `https://my-super-server.test-api.com:8443/api/things` with a maximum of 3 retries in case of any error, waiting for 2000ms before each retry and getting a full HTTP response**
+
+```javascript
+const client = new APIClient('https://my-super-server.test-api.com:8443');
+const opts: APICallOptions = {
+    method: 'get',
+    path: '/api/things',
+    retries: 3,
+    retryAfter: 2000,
+    getFullResponse: true
+};
+const result = await client.call(opts);
+
 `APICallOptions` is an object with the following properties:
 
 ```javascript
@@ -64,20 +77,22 @@ const result = await client.call(opts);
   retries: number;
   retryAfter: number;
   doNotRetryOnErrors?: number[];
+  getFullResponse?: boolean;
 }
 ```
 
-| PROPERTY             | VALUE                                                                          | DESCRIPTION                                                                             |
-| -------------------- | ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------- |
-| **`method`**         | string: `get` or `post` or `put` or `delete` or `options` or `head` or `patch` | HTTP method of the request                                                              |
-| **`path`**           | string                                                                         | relative (to `baseUrl`, constructor param) path of the endpoint to call                 |
-| `qs`                 | (optional) object                                                              | query string params                                                                     |
-| `body`               | (optional) object                                                              | JSON body to send to the endpoint                                                       |
-| `headers`            | (optional) object                                                              | HTTP headers to send                                                                    |
-| `authOptions`        | (optional) object                                                              | See HTTPAuthOptions below                                                               |
-| **`retries`**        | number                                                                         | Max number of retries in case of error calling the endpoint                             |
-| **`retryAfter`**     | number                                                                         | Number of milliseconds to wait before each retry                                        |
-| `doNotRetryOnErrors` | (optional) array of HTTP error code numbers (e.g., `401`, `404`, ...)          | The client WILL NOT retry the call in case of an HTTP error code included in this array |
+| PROPERTY             | VALUE                                                                          | DESCRIPTION                                                                                           |
+| -------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
+| **`method`**         | string: `get` or `post` or `put` or `delete` or `options` or `head` or `patch` | HTTP method of the request                                                                            |
+| **`path`**           | string                                                                         | relative (to `baseUrl`, constructor param) path of the endpoint to call                               |
+| `qs`                 | (optional) object                                                              | query string params                                                                                   |
+| `body`               | (optional) object                                                              | JSON body to send to the endpoint                                                                     |
+| `headers`            | (optional) object                                                              | HTTP headers to send                                                                                  |
+| `authOptions`        | (optional) object                                                              | See HTTPAuthOptions below                                                                             |
+| **`retries`**        | number                                                                         | Max number of retries in case of error calling the endpoint                                           |
+| **`retryAfter`**     | number                                                                         | Number of milliseconds to wait before each retry                                                      |
+| `doNotRetryOnErrors` | (optional) array of HTTP error code numbers (e.g., `401`, `404`, ...)          | The client WILL NOT retry the call in case of an HTTP error code included in this array               |
+| `getFullResponse`    | (optional) boolean                                                             | when true, the client returns the full HTTP Response object, default is false (only body is returned) |
 
 where `HTTPAuthOptions` is an object as follows:
 
