@@ -48,6 +48,9 @@ export async function startHTTPServer(port: number = 443): Promise<any> {
   app.get('/api/get-error', (req, res) => {
     res.status(500).send({ status: 500, reason: 'server error' });
   });
+  app.get('/api/too-long-request', (req, res) => {
+    setTimeout(() => res.status(200).send({ code: 'too long request' }), 10000);
+  });
 
   return new Promise((resolve, reject) => {
     resolve(https.createServer({ key: keys.serviceKey, cert: keys.certificate }, app).listen(port));

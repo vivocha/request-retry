@@ -327,4 +327,34 @@ describe('testing APIClient', function() {
       return;
     });
   });
+  describe('#call() with timeout', function() {
+    let env = process.env;
+    process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
+    let server;
+    before('starting test HTTP server', async function() {
+      // console.log('Starting test server');
+      server = await startHTTPServer(8443);
+      return;
+    });
+    it('with a timeout', async function() {
+      const client = new APIClient('https://localhost:8443');
+      const opts: APICallOptions = {
+        method: 'get',
+        path: '/api/too-long-request',
+        timeout: 2000,
+        retries: 1,
+        retryAfter: 2000,
+        getFullResponse: true
+      };
+      const spy = chai.spy.on(client, 'call');
+      return client.call(opts).should.eventually.be.rejectedWith(APICallError);
+    });
+
+    after('stopping HTTP server', async function() {
+      // console.log('Stopping test server');
+      server.close();
+      process.env = env;
+      return;
+    });
+  });
 });
