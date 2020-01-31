@@ -5,8 +5,8 @@ export interface HTTPAuthOptions {
   password?: string;
 }
 export interface APICallOptions {
-  method: APICallOptions.Method;
-  path: string;
+  method?: APICallOptions.Method;
+  path?: string;
   qs?: any;
   body?: any;
   headers?: any;

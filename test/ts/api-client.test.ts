@@ -19,7 +19,7 @@ describe('testing APIClient', function() {
       server = await startHTTPServer(8443);
       return;
     });
-    it('with missing params should throw', async function() {
+    it.skip('with missing params should throw', async function() {
       const client = new APIClient('https://localhost:8443');
       const opts: any = {
         retries: 3,
@@ -28,13 +28,13 @@ describe('testing APIClient', function() {
       const spy = chai.spy.on(client, 'call');
       return client.call(opts).should.eventually.be.rejected;
     });
-    it('with missing options should throw', async function() {
+    it.skip('with missing options should throw', async function() {
       const client = new APIClient('https://localhost:8443');
       const opts: any = {};
       const spy = chai.spy.on(client, 'call');
       return client.call(opts).should.eventually.be.rejected;
     });
-    it('with undefined options should throw', async function() {
+    it.skip('with undefined options should throw', async function() {
       const client = new APIClient('https://localhost:8443');
       const opts: any = undefined;
       const spy = chai.spy.on(client, 'call');
