@@ -45,6 +45,9 @@ export async function startHTTPServer(port: number = 443): Promise<any> {
   app.post('/api/json-res', (req, res) => {
     res.send(req.body);
   });
+  app.get('/api/get-error', (req, res) => {
+    res.status(500).send({ status: 500, reason: 'server error' });
+  });
 
   return new Promise((resolve, reject) => {
     resolve(https.createServer({ key: keys.serviceKey, cert: keys.certificate }, app).listen(port));

@@ -1,24 +1,7 @@
 import { getLogger } from 'debuggo';
 import * as rp from 'request-promise-native';
+import { APICallError, APICallOptions } from './types';
 
-export interface HTTPAuthOptions {
-  authorizationType?: string;
-  token?: string;
-  user?: string;
-  password?: string;
-}
-export interface APICallOptions {
-  method: 'get' | 'post' | 'put' | 'delete' | 'options' | 'head' | 'patch';
-  path: string;
-  qs?: any;
-  body?: any;
-  headers?: any;
-  authOptions?: HTTPAuthOptions;
-  retries: number;
-  retryAfter: number;
-  doNotRetryOnErrors?: number[];
-  getFullResponse?: boolean;
-}
 export class APIClient {
   constructor(private baseUrl: string, protected logger = getLogger('vivocha.api-client')) {}
   async call(options: APICallOptions): Promise<any> {
@@ -59,7 +42,10 @@ export class APIClient {
         this.logger.error(`Call returned response error ${response.statusCode}, body: ${JSON.stringify(response.body)}`);
         if (options.retries === 0 || options?.doNotRetryOnErrors.includes(response.statusCode)) {
           this.logger.warn('No more retries to do, throwing error');
-          throw new Error(`Error calling ${options.method} ${apiEndpoint}. Status: ${response.statusCode}, body: ${JSON.stringify(response.body)}`);
+          //throw new Error(`Error calling ${options.method} ${apiEndpoint}. Status: ${response.statusCode}, body: ${JSON.stringify(response.body)}`);
+          const error: APICallError = new APICallError('APICallError', response.body, response.statusCode, 'Error calling the API endpoint');
+          this.logger.error('error', JSON.stringify(error), error.message);
+          throw error;
         } else {
           this.logger.debug(`Retrying request ${options.method} ${apiEndpoint}...`);
           options.retries = options.retries - 1;

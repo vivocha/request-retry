@@ -1,7 +1,8 @@
 import * as chai from 'chai';
 import * as chaiPromis from 'chai-as-promised';
 import * as spies from 'chai-spies';
-import { APICallOptions, APIClient } from '../../dist/request';
+import { APIClient } from '../../dist/request';
+import { APICallError, APICallOptions } from '../../dist/types';
 import { startHTTPServer } from './simple-http-server';
 
 chai.use(spies);
@@ -288,6 +289,35 @@ describe('testing APIClient', function() {
       const result = await client.call(opts);
       result.result.should.equal('ok');
       spy.should.have.been.called.once;
+    });
+
+    after('stopping HTTP server', async function() {
+      // console.log('Stopping test server');
+      server.close();
+      process.env = env;
+      return;
+    });
+  });
+  describe('#call() with errors', function() {
+    let env = process.env;
+    process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
+    let server;
+    before('starting test HTTP server', async function() {
+      // console.log('Starting test server');
+      server = await startHTTPServer(8443);
+      return;
+    });
+    it('with a call error should be rejected', async function() {
+      const client = new APIClient('https://localhost:8443');
+      const opts: APICallOptions = {
+        method: 'get',
+        path: '/api/get-error',
+        retries: 1,
+        retryAfter: 2000,
+        getFullResponse: true
+      };
+      const spy = chai.spy.on(client, 'call');
+      return client.call(opts).should.eventually.be.rejectedWith(APICallError);
     });
 
     after('stopping HTTP server', async function() {
