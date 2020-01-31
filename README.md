@@ -63,6 +63,7 @@ const opts: APICallOptions = {
     getFullResponse: true
 };
 const result = await client.call(opts);
+```
 
 `APICallOptions` is an object with the following properties:
 
@@ -74,12 +75,15 @@ const result = await client.call(opts);
   body?: any;
   headers?: any
   authOptions?: HTTPAuthOptions;
+  timeout?: number;
   retries: number;
   retryAfter: number;
   doNotRetryOnErrors?: number[];
   getFullResponse?: boolean;
 }
 ```
+
+Properties are listed in the following table (required ones in **bold**):
 
 | PROPERTY             | VALUE                                                                          | DESCRIPTION                                                                                           |
 | -------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
@@ -89,6 +93,7 @@ const result = await client.call(opts);
 | `body`               | (optional) object                                                              | JSON body to send to the endpoint                                                                     |
 | `headers`            | (optional) object                                                              | HTTP headers to send                                                                                  |
 | `authOptions`        | (optional) object                                                              | See HTTPAuthOptions below                                                                             |
+| `timeout`            | (optional) number                                                              | set timeout value, in milliseconds                                                                    |
 | **`retries`**        | number                                                                         | Max number of retries in case of error calling the endpoint                                           |
 | **`retryAfter`**     | number                                                                         | Number of milliseconds to wait before each retry                                                      |
 | `doNotRetryOnErrors` | (optional) array of HTTP error code numbers (e.g., `401`, `404`, ...)          | The client WILL NOT retry the call in case of an HTTP error code included in this array               |
