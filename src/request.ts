@@ -17,9 +17,11 @@ export class APIClient {
         method: options.method || 'get',
         headers: options.headers ? options.headers : {},
         simple: false,
-        json: true,
         resolveWithFullResponse: true
       };
+      if (options?.json) {
+        requestOpts.json = true;
+      }
       if (options.qs) {
         requestOpts.qs = options.qs;
       }
@@ -27,9 +29,7 @@ export class APIClient {
         requestOpts.body = options.body;
       }
       if (options?.authOptions?.token && options?.authOptions?.authorizationType) {
-        requestOpts.headers = {
-          authorization: `${options.authOptions.authorizationType} ${options.authOptions.token}`
-        };
+        requestOpts.headers = { ...requestOpts.headers, authorization: `${options.authOptions.authorizationType} ${options.authOptions.token}` };
       } else if (options?.authOptions?.user && options?.authOptions?.password) {
         requestOpts.auth = {
           user: options.authOptions.user,
@@ -40,7 +40,6 @@ export class APIClient {
         requestOpts.timeout = options.timeout;
       }
       options.doNotRetryOnErrors = options.doNotRetryOnErrors && options.doNotRetryOnErrors.length ? options.doNotRetryOnErrors : [];
-
       this.logger.debug(`Calling API endpoint: ${options.method} ${apiEndpoint}`);
       const response: rp.FullResponse = await rp(apiEndpoint, requestOpts);
       this.logger.debug('Response status', response.statusCode);
@@ -50,7 +49,6 @@ export class APIClient {
         this.logger.error(`Call returned response error ${response.statusCode}, body: ${JSON.stringify(response.body)}`);
         if (options.retries === 0 || options?.doNotRetryOnErrors.includes(response.statusCode)) {
           this.logger.warn('No more retries to do, throwing error');
-          //throw new Error(`Error calling ${options.method} ${apiEndpoint}. Status: ${response.statusCode}, body: ${JSON.stringify(response.body)}`);
           const error: APICallError = new APICallError('APICallError', response.body, response.statusCode, 'Error calling the API endpoint');
           this.logger.error('error', JSON.stringify(error), error.message);
           throw error;

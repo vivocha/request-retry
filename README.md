@@ -23,6 +23,7 @@ const client = new APIClient('https://my-super-server.test-api.com:8443');
 const opts: APICallOptions = {
     method: 'get',
     path: '/api/things',
+    json: true,
     retries: 3,
     retryAfter: 2000
 };
@@ -40,6 +41,7 @@ const opts: APICallOptions = {
       authorizationType = 'Bearer',
       token: 'abcd-1234'
     },
+    json: true,
     body: {
       type: 'lamp'
       model: 'X-100'
@@ -58,6 +60,7 @@ const client = new APIClient('https://my-super-server.test-api.com:8443');
 const opts: APICallOptions = {
     method: 'get',
     path: '/api/things',
+    json: true
     retries: 3,
     retryAfter: 2000,
     getFullResponse: true
@@ -73,7 +76,8 @@ const result = await client.call(opts);
   path: string;
   qs?: any;
   body?: any;
-  headers?: any
+  headers?: any,
+  json?: boolean,
   authOptions?: HTTPAuthOptions;
   timeout?: number;
   retries: number;
@@ -85,19 +89,20 @@ const result = await client.call(opts);
 
 Properties are listed in the following table (required ones in **bold**):
 
-| PROPERTY             | VALUE                                                                          | DESCRIPTION                                                                                           |
-| -------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
-| **`method`**         | string: `get` or `post` or `put` or `delete` or `options` or `head` or `patch` | HTTP method of the request                                                                            |
-| **`path`**           | string                                                                         | relative (to `baseUrl`, constructor param) path of the endpoint to call                               |
-| `qs`                 | (optional) object                                                              | query string params                                                                                   |
-| `body`               | (optional) object                                                              | JSON body to send to the endpoint                                                                     |
-| `headers`            | (optional) object                                                              | HTTP headers to send                                                                                  |
-| `authOptions`        | (optional) object                                                              | See HTTPAuthOptions below                                                                             |
-| `timeout`            | (optional) number                                                              | set timeout value, in milliseconds                                                                    |
-| **`retries`**        | number                                                                         | Max number of retries in case of error calling the endpoint                                           |
-| **`retryAfter`**     | number                                                                         | Number of milliseconds to wait before each retry                                                      |
-| `doNotRetryOnErrors` | (optional) array of HTTP error code numbers (e.g., `401`, `404`, ...)          | The client WILL NOT retry the call in case of an HTTP error code included in this array               |
-| `getFullResponse`    | (optional) boolean                                                             | when true, the client returns the full HTTP Response object, default is false (only body is returned) |
+| PROPERTY             | VALUE                                                                                     | DESCRIPTION                                                                                                                                          |
+| -------------------- | ----------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `method`             | (optional) string: `get` or `post` or `put` or `delete` or `options` or `head` or `patch` | HTTP method of the request (default is `get`)                                                                                                        |
+| `path`               | (optional) string                                                                         | relative (to `baseUrl`, constructor param) path of the endpoint to call (default is '')                                                              |
+| `qs`                 | (optional) object                                                                         | query string params                                                                                                                                  |
+| `body`               | (optional) object                                                                         | JSON body to send to the endpoint                                                                                                                    |
+| `json`               | (optional) boolean                                                                        | if true, let `request` automatically send and parse JSON bodies, setting the headers properly. Default is false, and headers must be set accordingly |
+| `headers`            | (optional) object                                                                         | HTTP headers to send                                                                                                                                 |
+| `authOptions`        | (optional) object                                                                         | See HTTPAuthOptions below                                                                                                                            |
+| `timeout`            | (optional) number                                                                         | set timeout value, in milliseconds                                                                                                                   |
+| **`retries`**        | number                                                                                    | Max number of retries in case of error calling the endpoint                                                                                          |
+| **`retryAfter`**     | number                                                                                    | Number of milliseconds to wait before each retry                                                                                                     |
+| `doNotRetryOnErrors` | (optional) array of HTTP error code numbers (e.g., `401`, `404`, ...)                     | The client WILL NOT retry the call in case of an HTTP error code included in this array                                                              |
+| `getFullResponse`    | (optional) boolean                                                                        | when true, the client returns the full HTTP Response object, default is false (only body is returned)                                                |
 
 where `HTTPAuthOptions` is an object as follows:
 

@@ -10,7 +10,7 @@ chai.use(chaiPromis);
 chai.should();
 
 describe('testing APIClient', function() {
-  describe('#call() with wrong options', function() {
+  describe.skip('#call() with wrong options', function() {
     let env = process.env;
     process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
     let server;
@@ -40,31 +40,7 @@ describe('testing APIClient', function() {
       const spy = chai.spy.on(client, 'call');
       return client.call(opts).should.eventually.be.rejected;
     });
-    it('for 401 should retry 3 times (4 calls)', async function() {
-      const client = new APIClient('https://localhost:8443');
-      const opts: APICallOptions = {
-        method: 'get',
-        path: '/api/auth-required',
-        retries: 3,
-        retryAfter: 2000
-      };
-      const spy = chai.spy.on(client, 'call');
-      await client.call(opts).should.eventually.be.rejected;
-      return spy.should.have.been.called.exactly(4);
-    });
-    it('for a 401 in doNotTryOnErrors list, it should not retry (1 call)', async function() {
-      const client = new APIClient('https://localhost:8443');
-      const opts: APICallOptions = {
-        method: 'get',
-        path: '/api/auth-required',
-        retries: 3,
-        retryAfter: 2000,
-        doNotRetryOnErrors: [401]
-      };
-      const spy = chai.spy.on(client, 'call');
-      await client.call(opts).should.eventually.be.rejected;
-      return spy.should.have.been.called.exactly(1);
-    });
+
     after('stopping HTTP server', async function() {
       // console.log('Stopping test server');
       server.close();
@@ -81,13 +57,40 @@ describe('testing APIClient', function() {
       server = await startHTTPServer(8443);
       return;
     });
-
+    it('for 401 should retry 3 times (4 calls)', async function() {
+      const client = new APIClient('https://localhost:8443');
+      const opts: APICallOptions = {
+        method: 'get',
+        path: '/api/auth-required',
+        json: true,
+        retries: 3,
+        retryAfter: 2000
+      };
+      const spy = chai.spy.on(client, 'call');
+      await client.call(opts).should.eventually.be.rejected;
+      return spy.should.have.been.called.exactly(4);
+    });
+    it('for a 401 in doNotTryOnErrors list, it should not retry (1 call)', async function() {
+      const client = new APIClient('https://localhost:8443');
+      const opts: APICallOptions = {
+        method: 'get',
+        path: '/api/auth-required',
+        json: true,
+        retries: 3,
+        retryAfter: 2000,
+        doNotRetryOnErrors: [401]
+      };
+      const spy = chai.spy.on(client, 'call');
+      await client.call(opts).should.eventually.be.rejected;
+      return spy.should.have.been.called.exactly(1);
+    });
     it('should use headers option, if set (1 call)', async function() {
       const client = new APIClient('https://localhost:8443');
       const opts: APICallOptions = {
         method: 'get',
         path: '/api/get-test',
         headers: { 'x-test': 'testme', a: '123' },
+        json: true,
         retries: 3,
         retryAfter: 2000
       };
@@ -99,12 +102,99 @@ describe('testing APIClient', function() {
       spy.should.have.been.called.once;
       return;
     });
-
+    it('with a GET should use headers option preserving all headers, if set (1 call)', async function() {
+      const client = new APIClient('https://localhost:8443');
+      const opts: APICallOptions = {
+        method: 'get',
+        path: '/api/get-headers',
+        json: true,
+        authOptions: {
+          authorizationType: 'Bearer',
+          token: 'mytoken'
+        },
+        headers: { 'x-test': 'testme', a: '123', 'content-type': 'application/json' },
+        retries: 3,
+        retryAfter: 2000
+      };
+      const spy = chai.spy.on(client, 'call');
+      const result = await client.call(opts);
+      //console.log(result);
+      result.should.have.property('result');
+      result.headers['x-test'].should.equal('testme');
+      result.headers['a'].should.equal('123');
+      result.headers['authorization'].should.equal('Bearer mytoken');
+      spy.should.have.been.called.once;
+      return;
+    });
+    it('with a POST should use headers option preserving all headers, if set (1 call)', async function() {
+      const body = { a: 'start', b: { b1: 'ok', b2: 'message' } };
+      const sbody = JSON.stringify(body);
+      const hash = 'FFFFFFFF123456';
+      const client = new APIClient('https://localhost:8443');
+      const opts: APICallOptions = {
+        method: 'post',
+        path: '/api/post-headers',
+        authOptions: {
+          authorizationType: 'Bearer',
+          token: 'mytoken'
+        },
+        json: true,
+        body: body,
+        headers: { 'x-hmac': hash, 'x-test': 'testme', a: '123', 'content-type': 'application/json' },
+        retries: 3,
+        retryAfter: 2000
+      };
+      const spy = chai.spy.on(client, 'call');
+      const result = await client.call(opts);
+      //console.log('RESULT', result);
+      result.should.have.property('result');
+      result.headers['x-test'].should.equal('testme');
+      result.headers['a'].should.equal('123');
+      result.headers['x-hmac'].should.equal(hash);
+      result.headers['authorization'].should.equal('Bearer mytoken');
+      //console.log('RESULT.body--->', result.body);
+      result.body.should.deep.equal(body);
+      spy.should.have.been.called.once;
+      return;
+    });
+    it('with a POST passing a JSON string should use headers option preserving all headers, if set (1 call)', async function() {
+      const body = { a: 'start', b: { b1: 'ok', b2: 'message' } };
+      const sbody = JSON.stringify(body);
+      const hash = 'FFFFFFFF123456';
+      const client = new APIClient('https://localhost:8443');
+      const opts: APICallOptions = {
+        method: 'post',
+        path: '/api/post-string-headers',
+        authOptions: {
+          authorizationType: 'Bearer',
+          token: 'mytoken'
+        },
+        body: sbody,
+        headers: { 'content-length': Buffer.byteLength(sbody, 'utf8'), 'x-hmac': hash, 'x-test': 'testme', a: '123', 'content-type': 'application/json' },
+        retries: 3,
+        retryAfter: 2000
+      };
+      const spy = chai.spy.on(client, 'call');
+      const result = await client.call(opts);
+      //console.log('RESULT', result);
+      const resBody = JSON.parse(result);
+      //console.log('PARSED BODY', resBody);
+      resBody.should.have.property('result');
+      resBody.headers['x-test'].should.equal('testme');
+      resBody.headers['a'].should.equal('123');
+      resBody.headers['x-hmac'].should.equal(hash);
+      resBody.headers['authorization'].should.equal('Bearer mytoken');
+      //console.log('RESULT.body--->', result.body);
+      resBody.body.should.deep.equal(body);
+      spy.should.have.been.called.once;
+      return;
+    });
     it('for 200 OK should not retry (1 call)', async function() {
       const client = new APIClient('https://localhost:8443');
       const opts: APICallOptions = {
         method: 'get',
         path: '/api/get-test',
+        json: true,
         retries: 3,
         retryAfter: 2000
       };
@@ -119,6 +209,7 @@ describe('testing APIClient', function() {
       const opts: APICallOptions = {
         method: 'get',
         path: '/api/auth-required',
+        json: true,
         retries: 3,
         retryAfter: 2000
       };
@@ -131,6 +222,7 @@ describe('testing APIClient', function() {
       const opts: APICallOptions = {
         method: 'get',
         path: '/api/auth-required',
+        json: true,
         retries: 3,
         retryAfter: 2000,
         doNotRetryOnErrors: [401]
@@ -162,6 +254,7 @@ describe('testing APIClient', function() {
       const opts: APICallOptions = {
         method: 'get',
         path: '/api/usr-pass-auth',
+        json: true,
         authOptions: { user, password },
         retries: 3,
         retryAfter: 2000
@@ -180,6 +273,7 @@ describe('testing APIClient', function() {
       const opts: APICallOptions = {
         method: 'get',
         path: '/api/bearer-auth',
+        json: true,
         authOptions: { authorizationType, token },
         retries: 3,
         retryAfter: 2000
@@ -202,6 +296,7 @@ describe('testing APIClient', function() {
         path: '/api/bearer-auth',
         body,
         authOptions: { authorizationType, token },
+        json: true,
         retries: 3,
         retryAfter: 2000
       };
@@ -265,6 +360,7 @@ describe('testing APIClient', function() {
       const opts: APICallOptions = {
         method: 'get',
         path: '/api/get-test',
+        json: true,
         retries: 3,
         retryAfter: 2000,
         getFullResponse: true
@@ -282,6 +378,7 @@ describe('testing APIClient', function() {
       const opts: APICallOptions = {
         method: 'get',
         path: '/api/get-test',
+        json: true,
         retries: 3,
         retryAfter: 2000
       };
@@ -312,6 +409,7 @@ describe('testing APIClient', function() {
       const opts: APICallOptions = {
         method: 'get',
         path: '/api/get-error',
+        json: true,
         retries: 1,
         retryAfter: 2000,
         getFullResponse: true
@@ -341,6 +439,7 @@ describe('testing APIClient', function() {
       const opts: APICallOptions = {
         method: 'get',
         path: '/api/too-long-request',
+        json: true,
         timeout: 2000,
         retries: 1,
         retryAfter: 2000,

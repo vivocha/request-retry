@@ -10,6 +10,7 @@ export interface APICallOptions {
   qs?: any;
   body?: any;
   headers?: any;
+  json?: boolean;
   authOptions?: HTTPAuthOptions;
   timeout?: number;
   retries: number;

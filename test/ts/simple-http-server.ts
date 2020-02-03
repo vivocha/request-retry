@@ -7,11 +7,26 @@ import * as pem from 'pem-promise';
 export async function startHTTPServer(port: number = 443): Promise<any> {
   const keys = await pem.createCertificate({ days: 1, selfSigned: true });
   const app = express();
+  //app.use(bodyParser.text());
   app.use(bodyParser.json());
 
   const upload = multer({ dest: 'uploads/' });
   app.get('/api/get-test', (req, res) => {
     res.send({ result: 'ok', headers: req.headers });
+  });
+  app.get('/api/get-headers', (req, res) => {
+    //console.log('REQ HEADERS:', req.headers);
+    res.send({ result: 'ok', headers: req.headers });
+  });
+  app.post('/api/post-headers', (req, res) => {
+    //console.log('REQ HEADERS:', req.headers);
+    //console.log('REQ BODY:', req.body);
+    res.send({ result: 'ok', headers: req.headers, body: req.body });
+  });
+  app.post('/api/post-string-headers', (req, res) => {
+    //console.log('REQ HEADERS:', req.headers);
+    //console.log('REQ body :', req.body);
+    res.send({ result: 'ok', headers: req.headers, body: req.body });
   });
   app.get('/api/auth-required', (req, res) => {
     res.status(401).end();
