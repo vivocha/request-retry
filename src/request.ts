@@ -95,7 +95,7 @@ export class APIClient {
     const client = new APIClient(url, logger);
     return client.call(apiCallOptions);
   }
-  static async head(url: string, options: APICallOptions = { retries: 2, retryAfter: 1000 }, logger?: Logger): Promise<any> {
+  static async head(url: string, options: APICallOptions = { retries: 2, retryAfter: 1000, getFullResponse: true }, logger?: Logger): Promise<any> {
     const apiCallOptions: APICallOptions = { ...options, path: '', method: 'head', getFullResponse: true };
     const client = new APIClient(url, logger);
     return client.call(apiCallOptions);

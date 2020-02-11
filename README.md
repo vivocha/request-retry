@@ -121,3 +121,19 @@ where `HTTPAuthOptions` is an object as follows:
 | `token`             | (optional) string | Authentication token                                                                                                 |
 | `user`              | (optional) string | username for Basic Authentication, if specified then `password` property is required                                 |
 | `password`          | (optional) string | password for Basic Authentication, if specified then `user` property is required                                     |
+
+#### Useful shortcut static methods (get, post, put, patch, head)
+
+The following static, async methods are shortcuts for the `call()` method to use common HTTP methods. They all return a Promise with the results.
+
+##### `APIClient.get(url: string, options: APICallOptions = { retries: 2, retryAfter: 1000 }, logger?: Logger)`
+
+##### `ApiClient.post(url: string, body: any, options: APICallOptions = { retries: 2, retryAfter: 1000 }, logger?: Logger)`
+
+##### `APIClient.put(url: string, body: any, options: APICallOptions = { retries: 2, retryAfter: 1000 }, logger?: Logger):`
+
+##### `APIClient.delete(url: string, options: APICallOptions = { retries: 2, retryAfter: 1000 }, logger?: Logger)`
+
+##### `APIClient.patch(url: string, body: any, options: APICallOptions = { retries: 2, retryAfter: 1000 }, logger?: Logger)`
+
+##### `APIClient.head(url: string, options: APICallOptions = { retries: 2, retryAfter: 1000, getFullResponse: true }, logger?: Logger)`
