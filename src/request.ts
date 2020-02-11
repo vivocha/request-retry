@@ -1,4 +1,4 @@
-import { getLogger } from 'debuggo';
+import { getLogger, Logger } from 'debuggo';
 import * as rp from 'request-promise-native';
 import { APICallError, APICallOptions } from './types';
 
@@ -29,7 +29,9 @@ export class APIClient {
         requestOpts.body = options.body;
       }
       if (options?.authOptions?.token && options?.authOptions?.authorizationType) {
-        requestOpts.headers = { ...requestOpts.headers, authorization: `${options.authOptions.authorizationType} ${options.authOptions.token}` };
+        const authScheme = options.authOptions.authorizationType;
+        const authorizationType = authScheme === 'bearer' ? authScheme.charAt(0).toUpperCase() + authScheme.slice(1) : authScheme;
+        requestOpts.headers = { ...requestOpts.headers, authorization: `${authorizationType} ${options.authOptions.token}` };
       } else if (options?.authOptions?.user && options?.authOptions?.password) {
         requestOpts.auth = {
           user: options.authOptions.user,
@@ -67,5 +69,35 @@ export class APIClient {
       const apiError: APICallError = new APICallError('APICallError', null, undefined, error.message);
       throw apiError;
     }
+  }
+  static async get(url: string, options: APICallOptions = { retries: 2, retryAfter: 1000 }, logger?: Logger): Promise<any> {
+    const apiCallOptions: APICallOptions = { ...options, path: '', method: 'get' };
+    const client = new APIClient(url, logger);
+    return client.call(apiCallOptions);
+  }
+  static async post(url: string, body: any, options: APICallOptions = { retries: 2, retryAfter: 1000 }, logger?: Logger): Promise<any> {
+    const apiCallOptions: APICallOptions = { ...options, path: '', method: 'post', body };
+    const client = new APIClient(url, logger);
+    return client.call(apiCallOptions);
+  }
+  static async put(url: string, body: any, options: APICallOptions = { retries: 2, retryAfter: 1000 }, logger?: Logger): Promise<any> {
+    const apiCallOptions: APICallOptions = { ...options, path: '', method: 'put', body };
+    const client = new APIClient(url, logger);
+    return client.call(apiCallOptions);
+  }
+  static async delete(url: string, options: APICallOptions = { retries: 2, retryAfter: 1000 }, logger?: Logger): Promise<any> {
+    const apiCallOptions: APICallOptions = { ...options, path: '', method: 'delete' };
+    const client = new APIClient(url, logger);
+    return client.call(apiCallOptions);
+  }
+  static async patch(url: string, body: any, options: APICallOptions = { retries: 2, retryAfter: 1000 }, logger?: Logger): Promise<any> {
+    const apiCallOptions: APICallOptions = { ...options, path: '', method: 'patch', body };
+    const client = new APIClient(url, logger);
+    return client.call(apiCallOptions);
+  }
+  static async head(url: string, options: APICallOptions = { retries: 2, retryAfter: 1000 }, logger?: Logger): Promise<any> {
+    const apiCallOptions: APICallOptions = { ...options, path: '', method: 'head', getFullResponse: true };
+    const client = new APIClient(url, logger);
+    return client.call(apiCallOptions);
   }
 }

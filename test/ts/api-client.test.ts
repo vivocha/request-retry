@@ -1,52 +1,17 @@
 import * as chai from 'chai';
-import * as chaiPromis from 'chai-as-promised';
+import * as chaiPromised from 'chai-as-promised';
 import * as spies from 'chai-spies';
 import { APIClient } from '../../dist/request';
 import { APICallError, APICallOptions } from '../../dist/types';
 import { startHTTPServer } from './simple-http-server';
 
 chai.use(spies);
-chai.use(chaiPromis);
+chai.use(chaiPromised);
 chai.should();
 
 describe('testing APIClient', function() {
-  describe.skip('#call() with wrong options', function() {
-    let env = process.env;
-    process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
-    let server;
-    before('starting test HTTP server', async function() {
-      // console.log('Starting test server');
-      server = await startHTTPServer(8443);
-      return;
-    });
-    it.skip('with missing params should throw', async function() {
-      const client = new APIClient('https://localhost:8443');
-      const opts: any = {
-        retries: 3,
-        retryAfter: 2000
-      };
-      const spy = chai.spy.on(client, 'call');
-      return client.call(opts).should.eventually.be.rejected;
-    });
-    it.skip('with missing options should throw', async function() {
-      const client = new APIClient('https://localhost:8443');
-      const opts: any = {};
-      const spy = chai.spy.on(client, 'call');
-      return client.call(opts).should.eventually.be.rejected;
-    });
-    it.skip('with undefined options should throw', async function() {
-      const client = new APIClient('https://localhost:8443');
-      const opts: any = undefined;
-      const spy = chai.spy.on(client, 'call');
-      return client.call(opts).should.eventually.be.rejected;
-    });
-
-    after('stopping HTTP server', async function() {
-      // console.log('Stopping test server');
-      server.close();
-      process.env = env;
-      return;
-    });
+  afterEach(function() {
+    chai.spy.restore();
   });
   describe('#call()', function() {
     let env = process.env;
@@ -57,7 +22,18 @@ describe('testing APIClient', function() {
       server = await startHTTPServer(8443);
       return;
     });
-    it('for 401 should retry 3 times (4 calls)', async function() {
+    it('for GET 401 using default params should use get, no path and retry 3 times (4 calls)', async function() {
+      const client = new APIClient('https://localhost:8443/api/auth-required');
+      const opts: APICallOptions = {
+        json: true,
+        retries: 3,
+        retryAfter: 2000
+      };
+      const spy = chai.spy.on(client, 'call');
+      await client.call(opts).should.eventually.be.rejected;
+      return spy.should.have.been.called.exactly(4);
+    });
+    it('for GET 401 should retry 3 times (4 calls)', async function() {
       const client = new APIClient('https://localhost:8443');
       const opts: APICallOptions = {
         method: 'get',
@@ -70,7 +46,7 @@ describe('testing APIClient', function() {
       await client.call(opts).should.eventually.be.rejected;
       return spy.should.have.been.called.exactly(4);
     });
-    it('for a 401 in doNotTryOnErrors list, it should not retry (1 call)', async function() {
+    it('for GET 401 in doNotTryOnErrors list, it should not retry (1 call)', async function() {
       const client = new APIClient('https://localhost:8443');
       const opts: APICallOptions = {
         method: 'get',
@@ -84,11 +60,27 @@ describe('testing APIClient', function() {
       await client.call(opts).should.eventually.be.rejected;
       return spy.should.have.been.called.exactly(1);
     });
-    it('should use headers option, if set (1 call)', async function() {
+    it('for GET should use headers option, if set (1 call)', async function() {
       const client = new APIClient('https://localhost:8443');
       const opts: APICallOptions = {
         method: 'get',
         path: '/api/get-test',
+        headers: { 'x-test': 'testme', a: '123' },
+        json: true,
+        retries: 3,
+        retryAfter: 2000
+      };
+      const spy = chai.spy.on(client, 'call');
+      const result = await client.call(opts);
+      result.should.have.property('result');
+      result.headers['x-test'].should.equal('testme');
+      result.headers['a'].should.equal('123');
+      spy.should.have.been.called.once;
+      return;
+    });
+    it('using default params should call a get with no path, if set (1 call)', async function() {
+      const client = new APIClient('https://localhost:8443/api/get-test');
+      const opts: APICallOptions = {
         headers: { 'x-test': 'testme', a: '123' },
         json: true,
         retries: 3,
@@ -189,7 +181,7 @@ describe('testing APIClient', function() {
       spy.should.have.been.called.once;
       return;
     });
-    it('for 200 OK should not retry (1 call)', async function() {
+    it('for GET 200 OK should not retry (1 call)', async function() {
       const client = new APIClient('https://localhost:8443');
       const opts: APICallOptions = {
         method: 'get',
@@ -204,7 +196,7 @@ describe('testing APIClient', function() {
       spy.should.have.been.called.once;
       return;
     });
-    it('for 401 should retry for 3 times (4 calls)', async function() {
+    it('for GET 401 should retry for 3 times (4 calls)', async function() {
       const client = new APIClient('https://localhost:8443');
       const opts: APICallOptions = {
         method: 'get',
@@ -217,7 +209,7 @@ describe('testing APIClient', function() {
       await client.call(opts).should.eventually.be.rejected;
       return spy.should.have.been.called.exactly(4);
     });
-    it('for a 401 in doNotTryOnErrors list, it should not retry (1 call)', async function() {
+    it('for GET a 401 in doNotTryOnErrors list, it should not retry (1 call)', async function() {
       const client = new APIClient('https://localhost:8443');
       const opts: APICallOptions = {
         method: 'get',
@@ -247,7 +239,7 @@ describe('testing APIClient', function() {
       server = await startHTTPServer(8443);
       return;
     });
-    it('for a request with username password auth, it should be ok', async function() {
+    it('for a GET request with username password auth, it should be ok', async function() {
       const client = new APIClient('https://localhost:8443');
       const user = 'antonio';
       const password = '123456';
@@ -266,7 +258,7 @@ describe('testing APIClient', function() {
       spy.should.have.been.called.once;
       return;
     });
-    it('for a request with bearer token shoud return the correct header', async function() {
+    it('for a GET request with bearer token shoud return the correct header', async function() {
       const client = new APIClient('https://localhost:8443');
       const authorizationType = 'Bearer';
       const token = '123456';
@@ -325,7 +317,7 @@ describe('testing APIClient', function() {
       server = await startHTTPServer(8443);
       return;
     });
-    it('for HTML content, body should be a string', async function() {
+    it('for GET HTML content, body should be a string', async function() {
       const client = new APIClient('https://localhost:8443');
       const opts: APICallOptions = {
         method: 'get',
@@ -355,7 +347,7 @@ describe('testing APIClient', function() {
       server = await startHTTPServer(8443);
       return;
     });
-    it('with options.getFullresponse = true should return a full HTTP response', async function() {
+    it('for a GET with options.getFullresponse = true should return a full HTTP response', async function() {
       const client = new APIClient('https://localhost:8443');
       const opts: APICallOptions = {
         method: 'get',
@@ -373,7 +365,7 @@ describe('testing APIClient', function() {
       result.should.have.property('socket');
       spy.should.have.been.called.once;
     });
-    it('without options.getFullresponse should return a body only HTTP response', async function() {
+    it('for a GET without options.getFullresponse should return a body only HTTP response', async function() {
       const client = new APIClient('https://localhost:8443');
       const opts: APICallOptions = {
         method: 'get',
@@ -404,7 +396,7 @@ describe('testing APIClient', function() {
       server = await startHTTPServer(8443);
       return;
     });
-    it('with a call error should be rejected', async function() {
+    it('with a GET call with error should be rejected', async function() {
       const client = new APIClient('https://localhost:8443');
       const opts: APICallOptions = {
         method: 'get',
@@ -434,7 +426,7 @@ describe('testing APIClient', function() {
       server = await startHTTPServer(8443);
       return;
     });
-    it('with a timeout', async function() {
+    it('a GET with a timeout should be rejected', async function() {
       const client = new APIClient('https://localhost:8443');
       const opts: APICallOptions = {
         method: 'get',
