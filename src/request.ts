@@ -14,7 +14,7 @@ export class APIClient {
     const apiEndpoint = `${this.baseUrl}${options.path}`;
     try {
       const requestOpts: rp.RequestPromiseOptions = {
-        method: options.method || 'get',
+        method: options.method,
         headers: options.headers ? options.headers : {},
         simple: false,
         resolveWithFullResponse: true
@@ -30,8 +30,8 @@ export class APIClient {
       }
       if (options?.authOptions?.token && options?.authOptions?.authorizationType) {
         const authScheme = options.authOptions.authorizationType;
-        const authorizationType = authScheme === 'bearer' ? authScheme.charAt(0).toUpperCase() + authScheme.slice(1) : authScheme;
-        requestOpts.headers = { ...requestOpts.headers, authorization: `${authorizationType} ${options.authOptions.token}` };
+        const authType = authScheme === 'bearer' ? authScheme.charAt(0).toUpperCase() + authScheme.slice(1) : authScheme;
+        requestOpts.headers = { ...requestOpts.headers, authorization: `${authType} ${options.authOptions.token}` };
       } else if (options?.authOptions?.user && options?.authOptions?.password) {
         requestOpts.auth = {
           user: options.authOptions.user,
