@@ -14,7 +14,9 @@ export interface APICallOptions {
   authOptions?: HTTPAuthOptions;
   timeout?: number;
   retries: number;
-  retryAfter: number;
+  retryAfter?: number;
+  minRetryAfter?: number;
+  maxRetryAfter?: number;
   doNotRetryOnErrors?: number[];
   getFullResponse?: boolean;
 }
@@ -28,7 +30,6 @@ export class APICallError extends Error {
   data: any;
   status: number;
   message: string;
-
   constructor(name?: string, data?: any, status?: number, message?: string) {
     super(message || data?.message);
     this.name = name || 'APICallError';

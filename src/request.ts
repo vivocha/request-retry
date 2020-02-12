@@ -3,7 +3,10 @@ import * as rp from 'request-promise-native';
 import { APICallError, APICallOptions } from './types';
 
 export class APIClient {
-  constructor(private baseUrl: string, protected logger = getLogger('vivocha.api-client')) {}
+  private firstCall: boolean;
+  constructor(private baseUrl: string, protected logger = getLogger('vivocha.api-client')) {
+    this.firstCall = true;
+  }
   async call(options: APICallOptions): Promise<any> {
     if (!options?.method) {
       options.method = 'get';
@@ -28,39 +31,56 @@ export class APIClient {
       if (options.body) {
         requestOpts.body = options.body;
       }
-      if (options?.authOptions?.token && options?.authOptions?.authorizationType) {
+      // * Authentication
+      if (options.authOptions?.token && options.authOptions?.authorizationType) {
         const authScheme = options.authOptions.authorizationType;
         const authType = authScheme === 'bearer' ? authScheme.charAt(0).toUpperCase() + authScheme.slice(1) : authScheme;
         requestOpts.headers = { ...requestOpts.headers, authorization: `${authType} ${options.authOptions.token}` };
-      } else if (options?.authOptions?.user && options?.authOptions?.password) {
+      } else if (options.authOptions?.user && options.authOptions?.password) {
         requestOpts.auth = {
           user: options.authOptions.user,
           pass: options.authOptions.password
         };
       }
+      // * Request timeout
       if (options.timeout) {
         requestOpts.timeout = options.timeout;
       }
+      // * Do not retry on errors
       options.doNotRetryOnErrors = options.doNotRetryOnErrors && options.doNotRetryOnErrors.length ? options.doNotRetryOnErrors : [];
+
       this.logger.debug(`Calling API endpoint: ${options.method} ${apiEndpoint}`);
+
       const response: rp.FullResponse = await rp(apiEndpoint, requestOpts);
       this.logger.debug('Response status', response.statusCode);
+
       if (response.statusCode >= 200 && response.statusCode <= 299) {
         return options.getFullResponse ? response : response.body;
       } else {
         this.logger.error(`Call returned response error ${response.statusCode}, body: ${JSON.stringify(response.body)}`);
-        if (options.retries === 0 || options?.doNotRetryOnErrors.includes(response.statusCode)) {
+
+        if (options.retries === 0 || options.doNotRetryOnErrors.includes(response.statusCode)) {
           this.logger.warn('No more retries to do, throwing error');
           const error: APICallError = new APICallError('APICallError', response.body, response.statusCode, 'Error calling the API endpoint');
           this.logger.error('error', JSON.stringify(error), error.message);
           throw error;
         } else {
-          this.logger.debug(`Retrying request ${options.method} ${apiEndpoint}...`);
+          // * Retrying
+          // * compute the retry after milliseconds
+          let computedRetryAfter: number;
+
+          computedRetryAfter =
+            options.retryAfter ||
+            (options.minRetryAfter ? (this.firstCall ? options.minRetryAfter : computeRetryAfter(options.minRetryAfter, true, options.maxRetryAfter)) : 1000);
+
           options.retries = options.retries - 1;
+          this.firstCall = false;
+          this.logger.debug(`Going to retry request ${options.method} ${apiEndpoint} in ${computedRetryAfter} ms...`);
+          options.minRetryAfter = computedRetryAfter;
           return new Promise((resolve, reject) => {
             setTimeout(() => {
               return resolve(this.call(options));
-            }, options.retryAfter);
+            }, computedRetryAfter);
           });
         }
       }
@@ -99,5 +119,17 @@ export class APIClient {
     const apiCallOptions: APICallOptions = { ...options, path: '', method: 'head', getFullResponse: true };
     const client = new APIClient(url, logger);
     return client.call(apiCallOptions);
+  }
+}
+
+export function computeRetryAfter(current: number, addShift: boolean = true, max?: number): number {
+  if (max && current >= max) {
+    return max;
+  } else {
+    let retryAfterMillis = current * 2;
+    if (addShift) {
+      retryAfterMillis = retryAfterMillis + Math.ceil(Math.random() * 50);
+    }
+    return max && retryAfterMillis > max ? max : retryAfterMillis;
   }
 }
