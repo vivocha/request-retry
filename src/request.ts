@@ -4,6 +4,7 @@ import { APICallError, APICallOptions } from './types';
 
 export class APIClient {
   private firstCall: boolean;
+  private readonly DEFAULT_MAX: number = 10 * 60 * 1000; // default maxRetryAfter is 10 minutes
   constructor(private baseUrl: string, protected logger = getLogger('vivocha.api-client')) {
     this.firstCall = true;
   }
@@ -71,7 +72,11 @@ export class APIClient {
 
           computedRetryAfter =
             options.retryAfter ||
-            (options.minRetryAfter ? (this.firstCall ? options.minRetryAfter : computeRetryAfter(options.minRetryAfter, true, options.maxRetryAfter)) : 1000);
+            (options.minRetryAfter
+              ? this.firstCall
+                ? options.minRetryAfter
+                : computeRetryAfter(options.minRetryAfter, true, options.maxRetryAfter || this.DEFAULT_MAX)
+              : 1000);
 
           options.retries = options.retries - 1;
           this.firstCall = false;

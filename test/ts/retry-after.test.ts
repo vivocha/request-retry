@@ -1,8 +1,14 @@
 import * as chai from 'chai';
+import * as spies from 'chai-spies';
 import { computeRetryAfter } from '../../dist/request';
+
+chai.use(spies);
 chai.should();
 
 describe('Testing Util functions', function() {
+  afterEach(function() {
+    chai.spy.restore();
+  });
   describe('computeRetryAfter() with no max', function() {
     it('with addShift set to false, it should return twice the current number', function() {
       computeRetryAfter(2000, false).should.equal(4000);

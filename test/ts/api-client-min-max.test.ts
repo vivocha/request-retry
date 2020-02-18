@@ -129,7 +129,30 @@ describe('testing APIClient with minRetryAfter and maxRetryAfter options', funct
       endMillis.should.be.approximately(500, 100);
       return spy.should.have.been.called.exactly(6);
     });
-
+    it('for a POST 401 no min, no max using DEFAULT_MAX 10min, should retry using a constant retryAfter  (19 calls)', async function() {
+      if (process.env.LONG_TEST) {
+        console.log('LONG_TEST is set, running really long test...');
+        const client = new APIClient('https://localhost:8443/api/things-auth');
+        let opts: APICallOptions = {
+          method: 'post',
+          json: true,
+          retries: 18,
+          minRetryAfter: 10
+        };
+        const spy = chai.spy.on(client, 'call');
+        const start = hrtime();
+        await client.call(opts).should.eventually.be.rejected;
+        const end = hrtime(start);
+        const endSec = end[0];
+        const endMillis = end[1] / 1000000;
+        console.log('exec time: %ds %dms', end[0], end[1] / 1000000);
+        // endSec.should.equal(2);
+        // endMillis.should.be.approximately(120000, 100);
+        return spy.should.have.been.called.exactly(19);
+      } else {
+        this.skip();
+      }
+    });
     after('stopping HTTP server', async function() {
       // console.log('Stopping test server');
       server.close();
