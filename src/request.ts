@@ -91,7 +91,8 @@ export class APIClient {
       }
     } catch (error) {
       this.logger.error(`Error calling endpoint ${apiEndpoint}`);
-      const apiError: APICallError = new APICallError('APICallError', null, undefined, error.message);
+      const apiError: APICallError =
+        error instanceof APICallError ? (error as APICallError) : new APICallError(error.name || 'APICallError', null, undefined, error.message);
       throw apiError;
     }
   }

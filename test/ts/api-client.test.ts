@@ -406,7 +406,6 @@ describe('testing APIClient', function() {
         retryAfter: 2000,
         getFullResponse: true
       };
-      const spy = chai.spy.on(client, 'call');
       return client.call(opts).should.eventually.be.rejectedWith(APICallError);
     });
 
