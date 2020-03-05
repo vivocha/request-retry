@@ -1,6 +1,7 @@
 import { getLogger, Logger } from 'debuggo';
 import * as rp from 'request-promise-native';
 import { APICallError, APICallOptions } from './types';
+import request = require('request');
 
 export class APIClient {
   private firstCall: boolean;
@@ -60,7 +61,7 @@ export class APIClient {
       } else {
         this.logger.error(`Call returned response error ${response.statusCode}, body: ${JSON.stringify(response.body)}`);
 
-        if (options.retries === 0 || options.doNotRetryOnErrors.includes(response.statusCode)) {
+        if (options.retries === 0 || this.isDoNotRetryCode(options, response.statusCode)) {
           this.logger.warn('No more retries to do, throwing error');
           const error: APICallError = new APICallError('APICallError', response.body, response.statusCode, 'Error calling the API endpoint');
           this.logger.error('error', JSON.stringify(error), error.message);
@@ -96,6 +97,34 @@ export class APIClient {
       throw apiError;
     }
   }
+  private isDoNotRetryCode(options: APICallOptions, statusCode: number): boolean {
+    if (!options.doNotRetryOnErrors?.length) {
+      return false;
+    } else if (options.doNotRetryOnErrors.includes(statusCode) || options.doNotRetryOnErrors.includes(statusCode.toString())) {
+      return true;
+    } else {
+      //check if there are string patterns
+      const errorPatterns: string[] = options.doNotRetryOnErrors.filter(e => typeof e === 'string') as string[];
+      let isDoNotRetryCode = false;
+      for (let status of errorPatterns) {
+        const codexx = /(?<code>\d)xx/;
+        const codex = /(?<code>\d0)x/;
+        const xxmatch = codexx.exec(status);
+        const xmatch = codex.exec(status);
+        if (xxmatch && xxmatch?.groups?.code === statusCode.toString().charAt(0)) {
+          // like 5xx
+          isDoNotRetryCode = true;
+          break;
+        } else if (xmatch && xmatch?.groups?.code && statusCode.toString().startsWith(xmatch.groups.code)) {
+          // like 40x
+          isDoNotRetryCode = true;
+          break;
+        }
+      }
+      return isDoNotRetryCode;
+    }
+  }
+
   static async get(url: string, options: APICallOptions = { retries: 2, retryAfter: 1000 }, logger?: Logger): Promise<any> {
     const apiCallOptions: APICallOptions = { ...options, path: '', method: 'get' };
     const client = new APIClient(url, logger);

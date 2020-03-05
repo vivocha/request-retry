@@ -53,6 +53,36 @@ describe('Testing APIClient STATIC methods', function() {
       }).should.eventually.be.rejected;
       return spy.should.have.been.called.exactly(1);
     });
+    it('for a listed error (401) should not retry (1 call)', async function() {
+      const spy = chai.spy.on(APIClient.prototype, 'call');
+      await APIClient.delete('https://localhost:8443/api/things-auth/2', {
+        json: true,
+        retries: 2,
+        retryAfter: 1000,
+        doNotRetryOnErrors: ['401']
+      }).should.eventually.be.rejected;
+      return spy.should.have.been.called.exactly(1);
+    });
+    it('for a listed error (40x) should not retry (1 call)', async function() {
+      const spy = chai.spy.on(APIClient.prototype, 'call');
+      await APIClient.delete('https://localhost:8443/api/things-auth/2', {
+        json: true,
+        retries: 2,
+        retryAfter: 1000,
+        doNotRetryOnErrors: ['40x']
+      }).should.eventually.be.rejected;
+      return spy.should.have.been.called.exactly(1);
+    });
+    it('for a listed error (4xx) should not retry (1 call)', async function() {
+      const spy = chai.spy.on(APIClient.prototype, 'call');
+      await APIClient.delete('https://localhost:8443/api/things-auth/2', {
+        json: true,
+        retries: 2,
+        retryAfter: 1000,
+        doNotRetryOnErrors: ['4xx']
+      }).should.eventually.be.rejected;
+      return spy.should.have.been.called.exactly(1);
+    });
     it('with a delete should use headers option preserving all headers, if set (1 call)', async function() {
       const body = { a: 'start', b: { b1: 'ok', b2: 'message' } };
       const hash = 'FFFFFFFF123456';

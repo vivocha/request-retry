@@ -60,6 +60,20 @@ describe('testing APIClient', function() {
       await client.call(opts).should.eventually.be.rejected;
       return spy.should.have.been.called.exactly(1);
     });
+    it('for GET 401 in doNotTryOnErrors list, it should not retry (1 call)', async function() {
+      const client = new APIClient('https://localhost:8443');
+      const opts: APICallOptions = {
+        method: 'get',
+        path: '/api/auth-required',
+        json: true,
+        retries: 3,
+        retryAfter: 2000,
+        doNotRetryOnErrors: ['401']
+      };
+      const spy = chai.spy.on(client, 'call');
+      await client.call(opts).should.eventually.be.rejected;
+      return spy.should.have.been.called.exactly(1);
+    });
     it('for GET should use headers option, if set (1 call)', async function() {
       const client = new APIClient('https://localhost:8443');
       const opts: APICallOptions = {
@@ -218,6 +232,145 @@ describe('testing APIClient', function() {
         retries: 3,
         retryAfter: 2000,
         doNotRetryOnErrors: [401]
+      };
+      const spy = chai.spy.on(client, 'call');
+      await client.call(opts).should.eventually.be.rejected;
+      return spy.should.have.been.called.exactly(1);
+    });
+    it('for GET a 401 in doNotTryOnErrors list, it should not retry (1 call)', async function() {
+      const client = new APIClient('https://localhost:8443');
+      const opts: APICallOptions = {
+        method: 'get',
+        path: '/api/auth-required',
+        json: true,
+        retries: 3,
+        retryAfter: 2000,
+        doNotRetryOnErrors: ['401', 400]
+      };
+      const spy = chai.spy.on(client, 'call');
+      await client.call(opts).should.eventually.be.rejected;
+      return spy.should.have.been.called.exactly(1);
+    });
+    it('for GET with doNotRetryOnErrors property and a server 410, it should retry (3 calls)', async function() {
+      const client = new APIClient('https://localhost:8443');
+      const opts: APICallOptions = {
+        method: 'get',
+        path: '/api/gone',
+        json: true,
+        retries: 3,
+        retryAfter: 500
+      };
+      const spy = chai.spy.on(client, 'call');
+      await client.call(opts).should.eventually.be.rejected;
+      return spy.should.have.been.called.exactly(4);
+    });
+    it('for GET a 40x in doNotTryOnErrors list, it should not retry (1 call)', async function() {
+      const client = new APIClient('https://localhost:8443');
+      const opts: APICallOptions = {
+        method: 'get',
+        path: '/api/auth-required',
+        json: true,
+        retries: 3,
+        retryAfter: 2000,
+        doNotRetryOnErrors: ['40x', 400]
+      };
+      const spy = chai.spy.on(client, 'call');
+      await client.call(opts).should.eventually.be.rejected;
+      return spy.should.have.been.called.exactly(1);
+    });
+    it('for GET a 4xx and a 40x in doNotTryOnErrors list, it should not retry (1 call)', async function() {
+      const client = new APIClient('https://localhost:8443');
+      const opts: APICallOptions = {
+        method: 'get',
+        path: '/api/auth-required',
+        json: true,
+        retries: 3,
+        retryAfter: 2000,
+        doNotRetryOnErrors: ['4xx', '40x']
+      };
+      const spy = chai.spy.on(client, 'call');
+      await client.call(opts).should.eventually.be.rejected;
+      return spy.should.have.been.called.exactly(1);
+    });
+    it('for GET a 4xx and a 40x and a 400 in doNotTryOnErrors list, it should not retry (1 call)', async function() {
+      const client = new APIClient('https://localhost:8443');
+      const opts: APICallOptions = {
+        method: 'get',
+        path: '/api/auth-required',
+        json: true,
+        retries: 3,
+        retryAfter: 2000,
+        doNotRetryOnErrors: ['4xx', '40x', 400]
+      };
+      const spy = chai.spy.on(client, 'call');
+      await client.call(opts).should.eventually.be.rejected;
+      return spy.should.have.been.called.exactly(1);
+    });
+    it('for GET a 4xx and a 40x and a 400 in doNotTryOnErrors list, it should not retry (1 call)', async function() {
+      const client = new APIClient('https://localhost:8443');
+      const opts: APICallOptions = {
+        method: 'get',
+        path: '/api/auth-required',
+        json: true,
+        retries: 3,
+        retryAfter: 2000,
+        doNotRetryOnErrors: ['4xx', '40x', '400']
+      };
+      const spy = chai.spy.on(client, 'call');
+      await client.call(opts).should.eventually.be.rejected;
+      return spy.should.have.been.called.exactly(1);
+    });
+    it('for GET a 4xx in doNotTryOnErrors list and a server 410, it should not retry (1 call)', async function() {
+      const client = new APIClient('https://localhost:8443');
+      const opts: APICallOptions = {
+        method: 'get',
+        path: '/api/gone',
+        json: true,
+        retries: 3,
+        retryAfter: 2000,
+        doNotRetryOnErrors: ['4xx', 400]
+      };
+      const spy = chai.spy.on(client, 'call');
+      await client.call(opts).should.eventually.be.rejected;
+      return spy.should.have.been.called.exactly(1);
+    });
+    it('for GET a 40x in doNotTryOnErrors list and a server 410, it should retry (3 calls)', async function() {
+      const client = new APIClient('https://localhost:8443');
+      const opts: APICallOptions = {
+        method: 'get',
+        path: '/api/gone',
+        json: true,
+        retries: 3,
+        retryAfter: 500,
+        doNotRetryOnErrors: ['40x', 400]
+      };
+      const spy = chai.spy.on(client, 'call');
+      await client.call(opts).should.eventually.be.rejected;
+      return spy.should.have.been.called.exactly(4);
+    });
+    it('for GET a 5xx in doNotTryOnErrors list and a server 410, it should retry (3 calls)', async function() {
+      const client = new APIClient('https://localhost:8443');
+      const opts: APICallOptions = {
+        method: 'get',
+        path: '/api/gone',
+        json: true,
+        retries: 3,
+        retryAfter: 500,
+        doNotRetryOnErrors: ['5xx', '50x', 400]
+      };
+      const spy = chai.spy.on(client, 'call');
+      await client.call(opts).should.eventually.be.rejected;
+      return spy.should.have.been.called.exactly(4);
+    });
+    it('for GET a 4xx in doNotTryOnErrors list and a server 410, it should not retry (1 call)', async function() {
+      const client = new APIClient('https://localhost:8443');
+      const opts: APICallOptions = {
+        method: 'get',
+        path: '/api/gone',
+        json: true,
+        retries: 3,
+        retryAfter: 500,
+        doNotRetryOnErrors: ['4xx', '50x', 401]
       };
       const spy = chai.spy.on(client, 'call');
       await client.call(opts).should.eventually.be.rejected;

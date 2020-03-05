@@ -4,6 +4,7 @@ export interface HTTPAuthOptions {
   user?: string;
   password?: string;
 }
+export type errorCodePattern = number | string;
 export interface APICallOptions {
   method?: APICallOptions.Method;
   path?: string;
@@ -17,7 +18,7 @@ export interface APICallOptions {
   retryAfter?: number;
   minRetryAfter?: number;
   maxRetryAfter?: number;
-  doNotRetryOnErrors?: number[];
+  doNotRetryOnErrors?: errorCodePattern[];
   getFullResponse?: boolean;
 }
 

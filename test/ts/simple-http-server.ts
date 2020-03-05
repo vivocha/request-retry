@@ -27,6 +27,9 @@ export async function startHTTPServer(port: number = 443): Promise<any> {
   app.get('/api/auth-required', (req, res) => {
     res.status(401).end();
   });
+  app.get('/api/gone', (req, res) => {
+    res.status(410).end();
+  });
   app.get('/api/usr-pass-auth', (req, res) => {
     res.status(200).send({
       headers: req.headers

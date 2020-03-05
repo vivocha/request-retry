@@ -55,6 +55,39 @@ describe('Testing APIClient STATIC methods', function() {
       await APIClient.head('https://localhost:8443/api/auth-required', opts).should.eventually.be.rejected;
       return spy.should.have.been.called.exactly(1);
     });
+    it('for an error (401) in doNotTryOnErrors list, it should not retry (1 call)', async function() {
+      const opts: APICallOptions = {
+        retries: 3,
+        retryAfter: 2000,
+        getFullResponse: true,
+        doNotRetryOnErrors: ['401']
+      };
+      const spy = chai.spy.on(APIClient.prototype, 'call');
+      await APIClient.head('https://localhost:8443/api/auth-required', opts).should.eventually.be.rejected;
+      return spy.should.have.been.called.exactly(1);
+    });
+    it('for an error (40x) in doNotTryOnErrors list, it should not retry (1 call)', async function() {
+      const opts: APICallOptions = {
+        retries: 3,
+        retryAfter: 2000,
+        getFullResponse: true,
+        doNotRetryOnErrors: ['40x']
+      };
+      const spy = chai.spy.on(APIClient.prototype, 'call');
+      await APIClient.head('https://localhost:8443/api/auth-required', opts).should.eventually.be.rejected;
+      return spy.should.have.been.called.exactly(1);
+    });
+    it('for an error (4xx) in doNotTryOnErrors list, it should not retry (1 call)', async function() {
+      const opts: APICallOptions = {
+        retries: 3,
+        retryAfter: 2000,
+        getFullResponse: true,
+        doNotRetryOnErrors: ['4xx']
+      };
+      const spy = chai.spy.on(APIClient.prototype, 'call');
+      await APIClient.head('https://localhost:8443/api/auth-required', opts).should.eventually.be.rejected;
+      return spy.should.have.been.called.exactly(1);
+    });
     it('with Basic Auth should set the correct headers (1 call)', async function() {
       const opts: APICallOptions = {
         headers: { 'x-test': 'testme', a: '123', 'content-type': 'application/json' },
