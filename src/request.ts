@@ -54,16 +54,21 @@ export class APIClient {
       this.logger.debug(`Calling API endpoint: ${options.method} ${apiEndpoint}`);
 
       const response: rp.FullResponse = await rp(apiEndpoint, requestOpts);
-      this.logger.debug('Response status', response.statusCode);
+      this.logger.debug(`${options.method} ${apiEndpoint} response status`, response.statusCode);
 
       if (response.statusCode >= 200 && response.statusCode <= 299) {
         return options.getFullResponse ? response : response.body;
       } else {
-        this.logger.error(`Call returned response error ${response.statusCode}, body: ${JSON.stringify(response.body)}`);
+        this.logger.error(`${options.method} ${apiEndpoint} call returned response error ${response.statusCode}, body: ${JSON.stringify(response.body)}`);
 
         if (options.retries === 0 || this.isDoNotRetryCode(options, response.statusCode)) {
           this.logger.warn('No more retries to do, throwing error');
-          const error: APICallError = new APICallError('APICallError', response.body, response.statusCode, 'Error calling the API endpoint');
+          const error: APICallError = new APICallError(
+            'APICallError',
+            response.body,
+            response.statusCode,
+            `Error calling the API endpoint: ${options.method} ${apiEndpoint}`
+          );
           this.logger.error('error', JSON.stringify(error), error.message);
           throw error;
         } else {
@@ -91,7 +96,7 @@ export class APIClient {
         }
       }
     } catch (error) {
-      this.logger.error(`Error calling endpoint ${apiEndpoint}`);
+      this.logger.error(`Error calling endpoint ${options.method} ${apiEndpoint}`);
       const apiError: APICallError =
         error instanceof APICallError ? (error as APICallError) : new APICallError(error.name || 'APICallError', null, undefined, error.message);
       throw apiError;
