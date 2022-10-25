@@ -219,13 +219,20 @@ export async function startHTTPServer(port: number = 443): Promise<any> {
   // * HEAD
 
   app.head('/api/head-test', (req, res) => {
-    res.writeHead(200, req.headers).end();
+    res.set(req.headers);
+    res.end();
+    //res.writeHead(200, req.headers).end();
   });
   app.head('/api/auth-required', (req, res) => {
-    res.writeHead(401, req.headers).end();
+    res.set(req.headers);
+    res.status(401);
+    res.end();
   });
   app.head('/api/head-error', (req, res) => {
-    res.writeHead(500, { ...req.headers, 'x-error': 'test error' });
+    //res.writeHead(500, { ...req.headers, 'x-error': 'test error' });
+    res.set({ ...req.headers, 'x-error': 'test error' });
+    res.status(500);
+    res.end();
   });
   app.head('/api/too-long-request', (req, res) => {
     setTimeout(() => res.status(200).send({ code: 'too long request' }), 10000);
