@@ -2,6 +2,7 @@ version: 0.2
 
 env:
   secrets-manager:
+    NPM_TOKEN: /CodeBuild/vivocha-monorepo:NPM_TOKEN
     GH_TOKEN: /CodeBuild/vivocha-monorepo:GH_TOKEN
   git-credential-helper: yes
 
