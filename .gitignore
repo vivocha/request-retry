@@ -5,7 +5,8 @@ node_modules
 .DS_Store
 coverage
 
-#TypeScript typings/definitions
+#TypeScript & typings/definitions
+**/tsconfig.tsbuildinfo
 typings
 
 dist

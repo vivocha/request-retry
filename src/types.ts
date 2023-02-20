@@ -20,6 +20,13 @@ export interface APICallOptions {
   maxRetryAfter?: number;
   doNotRetryOnErrors?: errorCodePattern[];
   getFullResponse?: boolean;
+  follow_max?: number; // default will be 3
+  follow_set_cookies?: boolean; //Sends the cookies received in the set-cookie header as part of the following request, if hosts match. false by default.
+  follow_set_referer?: boolean; //Sets the 'Referer' header to the requested URI when following a redirect. false by default.
+  follow_keep_method?: boolean; //If enabled, resends the request using the original verb instead of being rewritten to get with no data. true by default.
+  follow_if_same_host?: boolean; //When true, will only follow redirects that point to the same host as the original request. false by default.
+  follow_if_same_protocol?: boolean; // When true,  will only follow redirects that point to the same protocol as the original request. false by default.
+  follow_if_same_location?: boolean; // Unless true,  will not follow redirects that point to same location (as set in the response header) as the original request URL. false by default.
 }
 
 export namespace APICallOptions {
@@ -32,9 +39,14 @@ export class APICallError extends Error {
   status: number;
   message: string;
   constructor(name?: string, data?: any, status?: number, message?: string) {
-    super(message || data?.message);
+    super();
+    this.message = message || data?.message;
     this.name = name || 'APICallError';
     this.data = data;
     this.status = status || data?.status;
   }
+}
+
+export interface APICallParams {
+  [param: string]: string | number | boolean;
 }

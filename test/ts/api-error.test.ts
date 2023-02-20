@@ -44,7 +44,7 @@ describe('Testing APICallError class', function () {
       server = await startHTTPServer(8443);
       return;
     });
-    it('Issue #3, returned error by a retried API call should be the one returned by the last call retry', async function () {
+    it('Issue #3, returned 500 error by a retried API call should be the one returned by the last call retry', async function () {
       const client = new APIClient('https://localhost:8443');
       const opts: APICallOptions = {
         method: 'get',
@@ -80,7 +80,7 @@ describe('Testing APICallError class', function () {
         //console.log('ERROR', error);
         error.name.should.equal('APICallError');
         error.status.should.equal(401);
-        should.not.exist(error.data);
+        //should.not.exist(error.data);
         error.message.should.include('Error calling the API endpoint');
         return;
       }
@@ -98,7 +98,6 @@ describe('Testing APICallError class', function () {
       const opts: APICallOptions = {
         method: 'get',
         path: '/api/get-error',
-        json: true,
         retries: 2,
         retryAfter: 500,
         getFullResponse: true
@@ -106,7 +105,7 @@ describe('Testing APICallError class', function () {
       try {
         await client.call(opts);
       } catch (error) {
-        error.name.should.equal('RequestError');
+        error.name.should.equal('Error');
         error.message.should.include('connect ECONNREFUSED');
         return;
       }

@@ -9,20 +9,20 @@ chai.use(spies);
 chai.use(chaiPromised);
 chai.should();
 
-describe('Testing APIClient STATIC methods', function() {
-  afterEach(function() {
+describe('Testing APIClient STATIC methods', function () {
+  afterEach(function () {
     chai.spy.restore();
   });
-  describe('APIClient.delete()', function() {
+  describe('APIClient.delete()', function () {
     let env = process.env;
     process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
     let server;
-    before('starting test HTTP server', async function() {
+    before('starting test HTTP server', async function () {
       // console.log('Starting test server');
       server = await startHTTPServer(8443);
       return;
     });
-    it('for 200 should not retry (1 call)', async function() {
+    it('for 200 should not retry (1 call)', async function () {
       const spy = chai.spy.on(APIClient.prototype, 'call');
       const result = await APIClient.delete('https://localhost:8443/api/things/1', {
         json: true,
@@ -33,7 +33,7 @@ describe('Testing APIClient STATIC methods', function() {
       result.id.should.equal('1');
       return;
     });
-    it('for not listed error (401) should retry 2 times (3 calls)', async function() {
+    it('for not listed error (401) should retry 2 times (3 calls)', async function () {
       const body = { thingName: 'lamp', b: { b1: 'ok', b2: 'message' } };
       const spy = chai.spy.on(APIClient.prototype, 'call');
       await APIClient.delete('https://localhost:8443/api/things-auth/1', {
@@ -43,7 +43,7 @@ describe('Testing APIClient STATIC methods', function() {
       }).should.eventually.be.rejected;
       return spy.should.have.been.called.exactly(3);
     });
-    it('for a listed error (401) should not retry (1 call)', async function() {
+    it('for a listed error (401) should not retry (1 call)', async function () {
       const spy = chai.spy.on(APIClient.prototype, 'call');
       await APIClient.delete('https://localhost:8443/api/things-auth/2', {
         json: true,
@@ -53,7 +53,7 @@ describe('Testing APIClient STATIC methods', function() {
       }).should.eventually.be.rejected;
       return spy.should.have.been.called.exactly(1);
     });
-    it('for a listed error (401) should not retry (1 call)', async function() {
+    it('for a listed error (401) should not retry (1 call)', async function () {
       const spy = chai.spy.on(APIClient.prototype, 'call');
       await APIClient.delete('https://localhost:8443/api/things-auth/2', {
         json: true,
@@ -63,7 +63,7 @@ describe('Testing APIClient STATIC methods', function() {
       }).should.eventually.be.rejected;
       return spy.should.have.been.called.exactly(1);
     });
-    it('for a listed error (40x) should not retry (1 call)', async function() {
+    it('for a listed error (40x) should not retry (1 call)', async function () {
       const spy = chai.spy.on(APIClient.prototype, 'call');
       await APIClient.delete('https://localhost:8443/api/things-auth/2', {
         json: true,
@@ -73,7 +73,7 @@ describe('Testing APIClient STATIC methods', function() {
       }).should.eventually.be.rejected;
       return spy.should.have.been.called.exactly(1);
     });
-    it('for a listed error (4xx) should not retry (1 call)', async function() {
+    it('for a listed error (4xx) should not retry (1 call)', async function () {
       const spy = chai.spy.on(APIClient.prototype, 'call');
       await APIClient.delete('https://localhost:8443/api/things-auth/2', {
         json: true,
@@ -83,8 +83,7 @@ describe('Testing APIClient STATIC methods', function() {
       }).should.eventually.be.rejected;
       return spy.should.have.been.called.exactly(1);
     });
-    it('with a delete should use headers option preserving all headers, if set (1 call)', async function() {
-      const body = { a: 'start', b: { b1: 'ok', b2: 'message' } };
+    it('with a delete should use headers option preserving all headers, if set (1 call), json true', async function () {
       const hash = 'FFFFFFFF123456';
       const spy = chai.spy.on(APIClient.prototype, 'call');
       const result = await APIClient.delete('https://localhost:8443/api/delete-headers/3', {
@@ -98,7 +97,7 @@ describe('Testing APIClient STATIC methods', function() {
         retryAfter: 2000
       });
 
-      //console.log('RESULT', result);
+      // console.log('RESULT', result);
       result.should.have.property('result');
       result.headers['x-test'].should.equal('testme');
       result.headers['a'].should.equal('123');
@@ -109,9 +108,7 @@ describe('Testing APIClient STATIC methods', function() {
       spy.should.have.been.called.once;
       return;
     });
-    it('with a delete should use headers option preserving all headers, if set (1 call)', async function() {
-      const body = { a: 'start', b: { b1: 'ok', b2: 'message' } };
-      const sbody = JSON.stringify(body);
+    it('with a delete should use headers option preserving all headers, if set (1 call), json false', async function () {
       const hash = 'FFFFFFFF123456';
       const spy = chai.spy.on(APIClient.prototype, 'call');
       const result = await APIClient.delete('https://localhost:8443/api/delete-string-headers/1', {
@@ -119,11 +116,11 @@ describe('Testing APIClient STATIC methods', function() {
           authorizationType: 'Bearer',
           token: 'mytoken'
         },
-        headers: { 'content-length': Buffer.byteLength(sbody, 'utf8'), 'x-hmac': hash, 'x-test': 'testme', a: '123', 'content-type': 'application/json' },
+        headers: { 'x-hmac': hash, 'x-test': 'testme', a: '123', 'content-type': 'application/json' },
         retries: 3,
         retryAfter: 2000
       });
-      //console.log('RESULT', result);
+      // console.log('RESULT', result);
       const resBody = JSON.parse(result);
       //console.log('PARSED BODY', resBody);
       resBody.should.have.property('result');
@@ -136,7 +133,7 @@ describe('Testing APIClient STATIC methods', function() {
       spy.should.have.been.called.once;
       return;
     });
-    it('for a delete request with Bearer token should return the correct header and body', async function() {
+    it('for a delete request with Bearer token should return the correct header and body', async function () {
       const authorizationType = 'Bearer';
       const token = '123456';
       const spy = chai.spy.on(APIClient.prototype, 'call');
@@ -153,7 +150,7 @@ describe('Testing APIClient STATIC methods', function() {
       spy.should.have.been.called.once;
       return;
     });
-    it('for a delete request with bearer token (lowercase) should return the correct Bearer header and body', async function() {
+    it('for a delete request with bearer token (lowercase) should return the correct Bearer header and body', async function () {
       const authorizationType = 'bearer';
       const token = '123456';
       const spy = chai.spy.on(APIClient.prototype, 'call');
@@ -170,7 +167,7 @@ describe('Testing APIClient STATIC methods', function() {
       spy.should.have.been.called.once;
       return;
     });
-    it('for a delete request with Basic auth should return the correct header and body', async function() {
+    it('for a delete request with Basic auth should return the correct header and body', async function () {
       const spy = chai.spy.on(APIClient.prototype, 'call');
       const result = await APIClient.delete('https://localhost:8443/api/delete-basic/1', {
         authOptions: { user: 'username', password: 'password' },
@@ -185,7 +182,7 @@ describe('Testing APIClient STATIC methods', function() {
       spy.should.have.been.called.once;
       return;
     });
-    it('for a delete request with custom auth should use the correct header and body', async function() {
+    it('for a delete request with custom auth should use the correct header and body', async function () {
       const authorizationType = 'App';
       const token = '123456';
       const spy = chai.spy.on(APIClient.prototype, 'call');
@@ -202,7 +199,7 @@ describe('Testing APIClient STATIC methods', function() {
       spy.should.have.been.called.once;
       return;
     });
-    it('for a delete request with custom auth (lowercase) should use the correct preserved header and body', async function() {
+    it('for a delete request with custom auth (lowercase) should use the correct preserved header and body', async function () {
       const authorizationType = 'app';
       const token = '123456';
       const body = { a: 1, b: 2 };
@@ -220,7 +217,7 @@ describe('Testing APIClient STATIC methods', function() {
       spy.should.have.been.called.once;
       return;
     });
-    it('for 200 and getFullResponse: true, should not retry (1 call)', async function() {
+    it('for 200 and getFullResponse: true, should not retry (1 call)', async function () {
       const body = { thingName: 'lamp', b: { b1: 'ok', b2: 'message' } };
       const spy = chai.spy.on(APIClient.prototype, 'call');
       const result = await APIClient.delete('https://localhost:8443/api/things/33', {
@@ -237,7 +234,7 @@ describe('Testing APIClient STATIC methods', function() {
       result.body.id.should.equal('33');
       return;
     });
-    it('for a not listed error (401) should retry (6 calls)', async function() {
+    it('for a not listed error (401) should retry (6 calls)', async function () {
       const body = { thingName: 'lamp', b: { b1: 'ok', b2: 'message' } };
       const spy = chai.spy.on(APIClient.prototype, 'call');
       await APIClient.delete('https://localhost:8443/api/things-auth/1', {
@@ -247,7 +244,7 @@ describe('Testing APIClient STATIC methods', function() {
       }).should.eventually.be.rejected;
       return spy.should.have.been.called.exactly(6);
     });
-    it('with a request timeout should be rejected', async function() {
+    it('with a request timeout should be rejected', async function () {
       return APIClient.delete('https://localhost:8443/api/too-long-request', {
         json: true,
         retries: 5,
@@ -255,7 +252,7 @@ describe('Testing APIClient STATIC methods', function() {
         timeout: 2000
       }).should.eventually.be.rejectedWith(APICallError);
     });
-    it('with query params should use them properly (1 call)', async function() {
+    it('with query params should use them properly (1 call)', async function () {
       const opts: APICallOptions = {
         json: true,
         retries: 3,
@@ -267,7 +264,7 @@ describe('Testing APIClient STATIC methods', function() {
       spy.should.have.been.called.once;
       return;
     });
-    it('with query params should use them properly (1 call)', async function() {
+    it('with query params should use them properly (1 call)', async function () {
       const opts: APICallOptions = {
         json: true,
         retries: 3,
@@ -283,12 +280,12 @@ describe('Testing APIClient STATIC methods', function() {
       spy.should.have.been.called.once;
       return;
     });
-    it('with no options should set 2 retries (3 calls) ', async function() {
+    it('with no options should set 2 retries (3 calls) ', async function () {
       const spy = chai.spy.on(APIClient.prototype, 'call');
       await APIClient.delete('https://localhost:8443/api/fourzerofour').should.eventually.be.rejected;
       return spy.should.have.been.called.exactly(3);
     });
-    after('stopping HTTP server', async function() {
+    after('stopping HTTP server', async function () {
       // console.log('Stopping test server');
       server.close();
       process.env = env;

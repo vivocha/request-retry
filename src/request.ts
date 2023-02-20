@@ -1,12 +1,12 @@
 import { getLogger, Logger } from 'debuggo';
-import * as rp from 'request-promise-native';
+import needle, { NeedleHttpVerbs } from 'needle';
+import queryString from 'query-string';
 import { APICallError, APICallOptions } from './types';
-import request = require('request');
 
 export class APIClient {
   private firstCall: boolean;
   private readonly DEFAULT_MAX: number = 10 * 60 * 1000; // default maxRetryAfter is 10 minutes
-  constructor(private baseUrl: string, protected logger = getLogger('vivocha.api-client')) {
+  constructor(private baseUrl: string, protected logger = getLogger('vivocha.request-retry')) {
     this.firstCall = true;
   }
   async call(options: APICallOptions): Promise<any> {
@@ -16,22 +16,24 @@ export class APIClient {
     if (typeof options?.path === 'undefined') {
       options.path = '';
     }
-    const apiEndpoint = `${this.baseUrl}${options.path}`;
+    let apiEndpoint = `${this.baseUrl}${options.path}`;
     try {
-      const requestOpts: rp.RequestPromiseOptions = {
-        method: options.method,
-        headers: options.headers ? options.headers : {},
-        simple: false,
-        resolveWithFullResponse: true
-      };
+      const requestOpts: needle.NeedleOptions = {};
+      if (options.headers && Object.keys(options.headers).length) {
+        requestOpts.headers = { ...options.headers };
+      }
       if (options?.json) {
         requestOpts.json = true;
+      } else {
+        requestOpts.json = false;
+        requestOpts.parse_response = false;
       }
-      if (options.qs) {
-        requestOpts.qs = options.qs;
+      if (options?.qs) {
+        apiEndpoint = `${apiEndpoint}?${queryString.stringify(options.qs)}`;
       }
+      let data: any;
       if (options.body) {
-        requestOpts.body = options.body;
+        data = options.body;
       }
       // * Authentication
       if (options.authOptions?.token && options.authOptions?.authorizationType) {
@@ -39,24 +41,37 @@ export class APIClient {
         const authType = authScheme === 'bearer' ? authScheme.charAt(0).toUpperCase() + authScheme.slice(1) : authScheme;
         requestOpts.headers = { ...requestOpts.headers, authorization: `${authType} ${options.authOptions.token}` };
       } else if (options.authOptions?.user && options.authOptions?.password) {
-        requestOpts.auth = {
-          user: options.authOptions.user,
-          pass: options.authOptions.password
-        };
+        requestOpts.headers = { ...requestOpts.headers };
+        requestOpts.username = options.authOptions.user;
+        requestOpts.password = options.authOptions.password;
       }
       // * Request timeout
       if (options.timeout) {
         requestOpts.timeout = options.timeout;
+        requestOpts.response_timeout = options.timeout;
       }
+      // * redirects following
+      requestOpts.follow_max = Math.abs(options?.follow_max || 3);
+      requestOpts.follow_set_cookies = options.follow_set_cookies || false; //Sends the cookies received in the set-cookie header as part of the following request, if hosts match. false by default.
+      requestOpts.follow_set_referer = options.follow_set_referer || false; //Sets the 'Referer' header to the requested URI when following a redirect. false by default.
+      requestOpts.follow_keep_method = options.follow_keep_method || true; //If enabled, resends the request using the original verb instead of being rewritten to get with no data. true by default.
+      requestOpts.follow_if_same_host = options.follow_if_same_host || false; //When true, will only follow redirects that point to the same host as the original request. false by default.
+      requestOpts.follow_if_same_protocol = options.follow_if_same_protocol || false; // When true,  will only follow redirects that point to the same protocol as the original request. false by default.
+      requestOpts.follow_if_same_location = options.follow_if_same_location || false; // Unless true,  will not follow redirects that point to same location (as set in the response header) as the original request URL. false by default.
+
       // * Do not retry on errors
       options.doNotRetryOnErrors = options.doNotRetryOnErrors && options.doNotRetryOnErrors.length ? options.doNotRetryOnErrors : [];
 
       this.logger.debug(`Calling API endpoint: ${options.method} ${apiEndpoint}`);
+      this.logger.trace(`Calling API endpoint: ${options.method} ${apiEndpoint}, headers: ${JSON.stringify(options.headers)}, body: ${JSON.stringify(data)}`);
+      // debugger;
+      let response: needle.NeedleResponse;
 
-      const response: rp.FullResponse = await rp(apiEndpoint, requestOpts);
+      response = await needle(options.method as NeedleHttpVerbs, apiEndpoint, data, requestOpts);
+
       this.logger.debug(`${options.method} ${apiEndpoint} response status`, response.statusCode);
 
-      if (response.statusCode >= 200 && response.statusCode <= 299) {
+      if (response.statusCode && response?.statusCode >= 200 && response.statusCode <= 299) {
         return options.getFullResponse ? response : response.body;
       } else {
         this.logger.error(`${options.method} ${apiEndpoint} call returned response error ${response.statusCode}, body: ${JSON.stringify(response.body)}`);
@@ -95,14 +110,17 @@ export class APIClient {
           });
         }
       }
-    } catch (error) {
-      this.logger.error(`Error calling endpoint ${options.method} ${apiEndpoint}`);
+    } catch (error: any) {
+      this.logger.error(`Error calling endpoint ${options.method} ${apiEndpoint}`, error);
       const apiError: APICallError =
-        error instanceof APICallError ? (error as APICallError) : new APICallError(error.name || 'APICallError', null, undefined, error.message);
+        error instanceof APICallError ? (error as APICallError) : new APICallError(error.name || 'APICallError', null, undefined, error.message || '');
       throw apiError;
     }
   }
-  private isDoNotRetryCode(options: APICallOptions, statusCode: number): boolean {
+  private isDoNotRetryCode(options: APICallOptions, statusCode: number | undefined): boolean {
+    if (!statusCode) {
+      return false;
+    }
     if (!options.doNotRetryOnErrors?.length) {
       return false;
     } else if (options.doNotRetryOnErrors.includes(statusCode) || options.doNotRetryOnErrors.includes(statusCode.toString())) {
