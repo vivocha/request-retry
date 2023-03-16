@@ -12,6 +12,14 @@ It depends on the nice [needle](https://www.npmjs.com/package/needle) HTTP clien
 - Node.js >= 16
 - CommonJS modules, yet.
 
+**This is a beta version.**
+
+To install it, please run:
+
+```sh
+npm i @vivocha/request-retry@beta
+```
+
 ## Changes and Breaking Changes
 
 - Node.js >=16 required
