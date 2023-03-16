@@ -238,6 +238,19 @@ export async function startHTTPServer(port: number = 443): Promise<any> {
     setTimeout(() => res.status(200).send({ code: 'too long request' }), 10000);
   });
 
+  // * REDIRECTION
+
+  app.get('/api/redirect', (req, res) => {
+    res.set({ Location: '/api/get-test' });
+    res.status(302);
+    res.end();
+  });
+  app.post('/api/redirect', (req, res) => {
+    res.set({ Location: '/api/things' });
+    res.status(307);
+    res.end();
+  });
+
   return new Promise((resolve, reject) => {
     resolve(https.createServer({ key: keys.serviceKey, cert: keys.certificate }, app).listen(port));
   });

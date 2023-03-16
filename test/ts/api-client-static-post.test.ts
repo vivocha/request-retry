@@ -9,20 +9,20 @@ chai.use(spies);
 chai.use(chaiPromised);
 chai.should();
 
-describe('Testing APIClient STATIC methods', function() {
-  afterEach(function() {
+describe('Testing APIClient STATIC methods', function () {
+  afterEach(function () {
     chai.spy.restore();
   });
-  describe('APIClient.post()', function() {
+  describe('APIClient.post()', function () {
     let env = process.env;
     process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
     let server;
-    before('starting test HTTP server', async function() {
+    before('starting test HTTP server', async function () {
       // console.log('Starting test server');
       server = await startHTTPServer(8443);
       return;
     });
-    it('for 201 should not retry (1 call)', async function() {
+    it('for 201 should not retry (1 call)', async function () {
       const body = { thingName: 'lamp', b: { b1: 'ok', b2: 'message' } };
       const spy = chai.spy.on(APIClient.prototype, 'call');
       const result = await APIClient.post('https://localhost:8443/api/things', body, {
@@ -35,7 +35,7 @@ describe('Testing APIClient STATIC methods', function() {
       result.id.should.equal('abcdef123456');
       return;
     });
-    it('for not listed error (401) should retry 2 times (3 calls)', async function() {
+    it('for not listed error (401) should retry 2 times (3 calls)', async function () {
       const body = { thingName: 'lamp', b: { b1: 'ok', b2: 'message' } };
       const spy = chai.spy.on(APIClient.prototype, 'call');
       await APIClient.post('https://localhost:8443/api/things-auth', body, {
@@ -45,7 +45,7 @@ describe('Testing APIClient STATIC methods', function() {
       }).should.eventually.be.rejected;
       return spy.should.have.been.called.exactly(3);
     });
-    it('for a listed error (401) should not retry (1 call)', async function() {
+    it('for a listed error (401) should not retry (1 call)', async function () {
       const body = { thingName: 'lamp', b: { b1: 'ok', b2: 'message' } };
       const spy = chai.spy.on(APIClient.prototype, 'call');
       await APIClient.post('https://localhost:8443/api/things-auth', body, {
@@ -56,7 +56,7 @@ describe('Testing APIClient STATIC methods', function() {
       }).should.eventually.be.rejected;
       return spy.should.have.been.called.exactly(1);
     });
-    it('for a listed error (40x) should not retry (1 call)', async function() {
+    it('for a listed error (40x) should not retry (1 call)', async function () {
       const body = { thingName: 'lamp', b: { b1: 'ok', b2: 'message' } };
       const spy = chai.spy.on(APIClient.prototype, 'call');
       await APIClient.post('https://localhost:8443/api/things-auth', body, {
@@ -67,7 +67,7 @@ describe('Testing APIClient STATIC methods', function() {
       }).should.eventually.be.rejected;
       return spy.should.have.been.called.exactly(1);
     });
-    it('for a listed error (4xx) should not retry (1 call)', async function() {
+    it('for a listed error (4xx) should not retry (1 call)', async function () {
       const body = { thingName: 'lamp', b: { b1: 'ok', b2: 'message' } };
       const spy = chai.spy.on(APIClient.prototype, 'call');
       await APIClient.post('https://localhost:8443/api/things-auth', body, {
@@ -78,7 +78,7 @@ describe('Testing APIClient STATIC methods', function() {
       }).should.eventually.be.rejected;
       return spy.should.have.been.called.exactly(1);
     });
-    it('with a POST should use headers option preserving all headers, if set (1 call)', async function() {
+    it('with a POST should use headers option preserving all headers, if set (1 call)', async function () {
       const body = { a: 'start', b: { b1: 'ok', b2: 'message' } };
       const hash = 'FFFFFFFF123456';
       const spy = chai.spy.on(APIClient.prototype, 'call');
@@ -104,7 +104,7 @@ describe('Testing APIClient STATIC methods', function() {
       spy.should.have.been.called.once;
       return;
     });
-    it('with a POST passing a JSON string should use headers option preserving all headers, if set (1 call)', async function() {
+    it('with a POST passing a JSON string should use headers option preserving all headers, if set (1 call)', async function () {
       const body = { a: 'start', b: { b1: 'ok', b2: 'message' } };
       const sbody = JSON.stringify(body);
       const hash = 'FFFFFFFF123456';
@@ -131,7 +131,7 @@ describe('Testing APIClient STATIC methods', function() {
       spy.should.have.been.called.once;
       return;
     });
-    it('for a POST request with Bearer token should return the correct header and body', async function() {
+    it('for a POST request with Bearer token should return the correct header and body', async function () {
       const authorizationType = 'Bearer';
       const token = '123456';
       const body = { a: 1, b: 2 };
@@ -149,7 +149,7 @@ describe('Testing APIClient STATIC methods', function() {
       spy.should.have.been.called.once;
       return;
     });
-    it('for a POST request with bearer token (lowercase) should return the correct Bearer header and body', async function() {
+    it('for a POST request with bearer token (lowercase) should return the correct Bearer header and body', async function () {
       const authorizationType = 'bearer';
       const token = '123456';
       const body = { a: 1, b: 2 };
@@ -167,7 +167,7 @@ describe('Testing APIClient STATIC methods', function() {
       spy.should.have.been.called.once;
       return;
     });
-    it('for a POST request with Basic auth should return the correct header and body', async function() {
+    it('for a POST request with Basic auth should return the correct header and body', async function () {
       const body = { a: 1, b: 2 };
       const spy = chai.spy.on(APIClient.prototype, 'call');
       const result = await APIClient.post('https://localhost:8443/api/post-basic', body, {
@@ -183,7 +183,7 @@ describe('Testing APIClient STATIC methods', function() {
       spy.should.have.been.called.once;
       return;
     });
-    it('for a POST request with custom auth should use the correct header and body', async function() {
+    it('for a POST request with custom auth should use the correct header and body', async function () {
       const authorizationType = 'App';
       const token = '123456';
       const body = { a: 1, b: 2 };
@@ -201,7 +201,7 @@ describe('Testing APIClient STATIC methods', function() {
       spy.should.have.been.called.once;
       return;
     });
-    it('for a POST request with custom auth (lowercase) should use the correct preserved header and body', async function() {
+    it('for a POST request with custom auth (lowercase) should use the correct preserved header and body', async function () {
       const authorizationType = 'app';
       const token = '123456';
       const body = { a: 1, b: 2 };
@@ -219,7 +219,7 @@ describe('Testing APIClient STATIC methods', function() {
       spy.should.have.been.called.once;
       return;
     });
-    it('for 201 and getFullResponse: true, should not retry (1 call)', async function() {
+    it('for 201 and getFullResponse: true, should not retry (1 call)', async function () {
       const body = { thingName: 'lamp', b: { b1: 'ok', b2: 'message' } };
       const spy = chai.spy.on(APIClient.prototype, 'call');
       const result = await APIClient.post('https://localhost:8443/api/things', body, {
@@ -237,7 +237,7 @@ describe('Testing APIClient STATIC methods', function() {
       result.body.id.should.equal('abcdef123456');
       return;
     });
-    it('for a not listed error (401) should retry (6 calls)', async function() {
+    it('for a not listed error (401) should retry (6 calls)', async function () {
       const body = { thingName: 'lamp', b: { b1: 'ok', b2: 'message' } };
       const spy = chai.spy.on(APIClient.prototype, 'call');
       await APIClient.post('https://localhost:8443/api/things-auth', body, {
@@ -247,7 +247,7 @@ describe('Testing APIClient STATIC methods', function() {
       }).should.eventually.be.rejected;
       return spy.should.have.been.called.exactly(6);
     });
-    it('with a request timeout should be rejected', async function() {
+    it('with a request timeout should be rejected', async function () {
       const body = { thingName: 'lamp', b: { b1: 'ok', b2: 'message' } };
       const spy = chai.spy.on(APIClient.prototype, 'call');
       return APIClient.post('https://localhost:8443/api/too-long-request', body, {
@@ -257,7 +257,7 @@ describe('Testing APIClient STATIC methods', function() {
         timeout: 2000
       }).should.eventually.be.rejectedWith(APICallError);
     });
-    it('with query params should use them properly (1 call)', async function() {
+    it('with query params should use them properly (1 call)', async function () {
       const opts: APICallOptions = {
         json: true,
         retries: 3,
@@ -269,7 +269,7 @@ describe('Testing APIClient STATIC methods', function() {
       spy.should.have.been.called.once;
       return;
     });
-    it('with query params should use them properly (1 call)', async function() {
+    it('with query params should use them properly (1 call)', async function () {
       const opts: APICallOptions = {
         json: true,
         retries: 3,
@@ -285,12 +285,25 @@ describe('Testing APIClient STATIC methods', function() {
       spy.should.have.been.called.once;
       return;
     });
-    it('with no options should set 2 retries (3 calls) ', async function() {
+    it('with no options should set 2 retries (3 calls) ', async function () {
       const spy = chai.spy.on(APIClient.prototype, 'call');
       await APIClient.post('https://localhost:8443/api/fourzerofour', '').should.eventually.be.rejected;
       return spy.should.have.been.called.exactly(3);
     });
-    after('stopping HTTP server', async function() {
+    it('for a POST with 307 redirection, should not retry (1 call) and POST data to Location: /api/things', async function () {
+      const body = { thingName: 'arduino', b: { b1: 'ok', b2: 'message' } };
+      const spy = chai.spy.on(APIClient.prototype, 'call');
+      const result = await APIClient.post('https://localhost:8443/api/redirect', body, {
+        json: true,
+        retries: 3,
+        retryAfter: 2000
+      });
+      spy.should.have.been.called.once;
+      result.thingName.should.equal('arduino');
+      result.id.should.equal('abcdef123456');
+      return;
+    });
+    after('stopping HTTP server', async function () {
       // console.log('Stopping test server');
       server.close();
       process.env = env;
