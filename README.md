@@ -5,7 +5,7 @@ HTTP requests with configurable retries and API utilities.
 [![NPM version](https://img.shields.io/npm/v/@vivocha/request-retry.svg?style=flat)](https://www.npmjs.com/package/@vivocha/request-retry)  [![Build Status](https://travis-ci.com/vivocha/request-retry.svg?branch=master)](https://travis-ci.org/vivocha/request-retry)  [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
 **Vivocha Request-Retry** is a library to call API endpoints / do HTTP calls with configurable, automatic call retries in case of errors.
-It dependes from the [needle](https://www.npmjs.com/package/needle) HTTP client module.
+It depends on the nice [needle](https://www.npmjs.com/package/needle) HTTP client module.
 
 ## Requirements and Notes
 
